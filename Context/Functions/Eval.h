@@ -21,6 +21,12 @@ namespace db {
 
 		Eval (evalSelect);
 
+		Eval (evalAnd);
+
+		Eval (evalOr);
+
+		Eval (evalNot);
+
 		Eval (evalCompare);
 
 		Eval (evalInsert);

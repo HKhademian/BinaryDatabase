@@ -6,6 +6,7 @@
 
 namespace db {
 	namespace ctx {
+
 		Eval (evalSelect) {
 			if (vparams.empty() || vparams.size() > 2) {
 				throw std::invalid_argument("illegal param count");
@@ -29,5 +30,70 @@ namespace db {
 
 			return eval(context, cmd, vparams[1]);
 		}
+
+		Eval (evalAnd) {
+			if (vparams.size() < 2) {
+				throw std::invalid_argument("illegal param count (at least 2)");
+			}
+			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
+
+			// TODO: check previous rows
+			auto rows = loadRows(table);
+			context.rows = new std::vector<DataRow>(rows);
+
+			Context *currentContext = &context;
+			for (const auto &vparam: vparams) {
+				currentContext = eval(*currentContext, cmd, vparam);
+				if (currentContext->hasError()) {
+					return currentContext;
+				}
+			}
+
+			return eval(context, cmd, vparams[1]);
+		}
+
+		Eval (evalOr) {
+			if (vparams.size() < 2) {
+				throw std::invalid_argument("illegal param count (at least 2)");
+			}
+			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
+
+			// TODO: check previous rows
+			auto rows = loadRows(table);
+			context.rows = &rows;
+
+			auto &sum = *new std::vector<DataRow>();
+			for (const auto &vparam: vparams) {
+				Context *result = eval(context, cmd, vparam);
+				if (result->hasError()) {
+					return result;
+				}
+				//TODO: add(sum, result->rows);
+			}
+
+			context.rows = &sum;
+			return context.done();
+		}
+
+		Eval (evalNot) {
+			if (vparams.size() != 1) {
+				throw std::invalid_argument("illegal param count (exactly 1)");
+			}
+			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
+
+			// TODO: check previous rows
+			auto rows = loadRows(table);
+			context.rows = new std::vector<DataRow>(rows);
+
+			Context *result = eval(context, cmd, vparams[1]);
+			if (result->hasError()) {
+				return result;
+			}
+			//TODO: remove(rows, result->rows);
+
+			return context.done();
+		}
+
+
 	}
 }
