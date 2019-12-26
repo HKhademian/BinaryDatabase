@@ -13,9 +13,9 @@ namespace db {
 	namespace ctx {
 		class Context;
 
-		Context *eval(const Context &ctx, const std::string &cmd, Range range);
+		Context *eval(const Context &context, const std::string &cmd, Range range);
 
-		Context *snapEval(Context &ctx, const std::string &cmd, Range range);
+		Context *snapEval(Context &context, const std::string &cmd, Range range);
 
 		typedef void (*OnDatabaseOpen)(Context &context, int version);
 
@@ -33,7 +33,7 @@ namespace db {
 			std::vector<DataRow> *rows = nullptr;
 			std::vector<ColumnInfo> *columns = nullptr;
 
-			void exec(const std::string &cmd, ...);
+			Context *exec(const std::string &cmd, ...);
 
 			void open(
 				const std::string &name, int version = 1,

@@ -16,7 +16,7 @@ namespace db {
 			OnDatabaseUpgrade onUpgrade
 		) {
 			try {
-				auto dbInfo = new DatabaseInfo;
+				auto *dbInfo = new DatabaseInfo;
 				const std::string path = "./db-" + name + "-inf.dat";
 
 				std::ifstream is;
@@ -28,18 +28,19 @@ namespace db {
 			} catch (...) {
 				database = new DatabaseInfo(name);
 				saveDatabaseInfo();
-				if (onCreate)
+				if (onCreate) {
 					onCreate(*this, version);
-
+				}
 			}
 
 			// TODO: some version management
-			if (onOpen)
+			if (onOpen) {
 				onOpen(*this, version);
+			}
 		}
 
 		void Context::clear() {
-			delete table;
+			//delete table;
 			table = nullptr;
 
 			delete columns;
@@ -51,7 +52,7 @@ namespace db {
 			rows = nullptr;
 
 			//delete res;
-			//res = nullptr;
+			res.type = Result::ERR;
 
 			args.clear();
 		}
@@ -73,7 +74,7 @@ namespace db {
 			os.close();
 		}
 
-		void Context::exec(const std::string &cmd, ...) {
+		Context *Context::exec(const std::string &cmd, ...) {
 			clear();
 
 			//TODO: implement varargs
@@ -81,7 +82,7 @@ namespace db {
 			va_start(vargs, cmd);
 			va_end(vargs);
 
-			snapEval(*this, cmd, Range(0, cmd.size() - 1));
+			return snapEval(*this, cmd, Range(0, cmd.size() - 1));
 		}
 
 		Context *Context::result(int type, const std::string &message) {
