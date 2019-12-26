@@ -108,15 +108,15 @@ namespace db {
 		}
 
 		bool isParamRange(const std::string &str, const Ranger &ranger, Range &range) {
-			paramTrim(str, range);
-			const Range req(range.start, range.end);
-			//try {
-			return
-				paramFindRange(str, ranger, range) &&
-				range.start == req.start && range.end == req.end;
-			//} catch (...) {}
-			//range = req;
-			//return false;
+			Range src(range);
+			paramTrim(str, src);
+			Range req(src);
+			if (!paramFindRange(str, ranger, req) ||
+			    src.start != req.start || src.end != req.end) {
+				return false; // not found
+			}
+			range = req; // to new pos
+			return true;
 		}
 
 		bool param2Text(const std::string &str, Range &range, bool bare) {

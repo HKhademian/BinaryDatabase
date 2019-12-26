@@ -3,6 +3,7 @@
 #include "../params.h"
 #include "../../MetaInfo/TableInfo.h"
 #include "../Context.h"
+#include "../../utils.h"
 
 namespace db {
 	namespace ctx {
@@ -61,26 +62,78 @@ namespace db {
 			return table.columns[columnPos];
 		}
 
-		DataCell parseValue(Context &context, const ColumnInfo &column, const std::string &cmd, Range range) {
-			const auto &type = column.type;
-			const auto &param = paramSub(cmd, range);
-			DataCell cell(column);
+		DataCell &parseValue(Context &context, DataCell &cell, const std::string &cmd, Range range) {
+			const auto &type = cell.column.type;
 
-			if (isDataType(type, TYPE_BYTE)) {
-				//TODO: handle list
-				cell.setValueByte(std::stoi(param));
-			} else if (isDataType(type, TYPE_INT)) {
-				//TODO: handle list
-				cell.setValueInt(std::stol(param));
-			} else if (isDataType(type, TYPE_REAL)) {
-				//TODO: handle list
-				cell.setValueReal(std::stod(param));
-			} else if (isDataType(type, TYPE_TEXT)) {
-				cell.setValueText(param);
-			} else {
-				throw TypeError();
+			if (isDataType(type, TYPE_TEXT)) {
+				if (param2Text(cmd, range, false)) { // plain text found
+					range.start++, range.end--;
+					const auto &param = paramSub(cmd, range, false);
+					cell.setValueText(param);
+					return cell;
+				}
+				throw std::invalid_argument("not valid string argument");
 			}
 
+			const auto &count = getTypeCount(type);
+			std::vector<Range> vparams;
+			if (isParamRange(cmd, Ranger::lst, range)) {
+				vparams = paramSplit(cmd, Ranger::lst, range);
+			} else {
+				vparams.push_back(range);
+			}
+
+			if (isDataType(type, TYPE_BYTE)) {
+				TypeByte val[count];
+				loop(i, count) {
+					if (i >= vparams.size()) {
+						val[i] = 0;
+					} else {
+						const auto &param = paramSub(cmd, vparams[i], true);
+						val[i] = std::stoi(param);
+					}
+				}
+
+				cell.setValue(val);
+				return cell;
+			}
+
+			if (isDataType(type, TYPE_INT)) {
+				TypeInt val[count];
+				loop(i, count) {
+					if (i >= vparams.size()) {
+						val[i] = 0;
+					} else {
+						const auto &param = paramSub(cmd, vparams[i], true);
+						val[i] = std::stoi(param);
+					}
+				}
+
+				cell.setValue(val);
+				return cell;
+			}
+
+			if (isDataType(type, TYPE_REAL)) {
+				TypeReal val[count];
+				loop(i, count) {
+					if (i >= vparams.size()) {
+						val[i] = 0;
+					} else {
+						const auto &param = paramSub(cmd, vparams[i], true);
+						val[i] = std::stof(param); //TODO: maybe double
+					}
+				}
+
+				cell.setValue(val);
+				return cell;
+			}
+
+			throw TypeError();
+		}
+
+		DataCell parseValue(Context &context, const ColumnInfo &column, const std::string &cmd, Range range) {
+			DataCell cell(column);
+			parseValue(context, cell, cmd, range);
 			return cell;
 		}
 

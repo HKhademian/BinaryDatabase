@@ -39,13 +39,13 @@ namespace db {
 			const auto typeParam = paramSub(param, typeRange);
 
 			return
-					strcaseequal(typeParam, TYP_TEXT) ? dataType(TYPE_TEXT, 1) :
-					count <= 0 ? throw std::invalid_argument("illegal type count argument") :
-					strcaseequal(typeParam, TYP_BYTE) ? dataType(TYPE_BYTE, count) :
-					strcaseequal(typeParam, TYP_CHAR) ? dataType(TYPE_BYTE, count) :
-					strcaseequal(typeParam, TYP_INT) ? dataType(TYPE_INT, count) :
-					strcaseequal(typeParam, TYP_REAL) ? dataType(TYPE_REAL, count) :
-					throw TypeError();
+				strcaseequal(typeParam, TYP_TEXT) ? dataType(TYPE_TEXT, 1) :
+				count <= 0 ? throw std::invalid_argument("illegal type count argument") :
+				strcaseequal(typeParam, TYP_BYTE) ? dataType(TYPE_BYTE, count) :
+				strcaseequal(typeParam, TYP_CHAR) ? dataType(TYPE_BYTE, count) :
+				strcaseequal(typeParam, TYP_INT) ? dataType(TYPE_INT, count) :
+				strcaseequal(typeParam, TYP_REAL) ? dataType(TYPE_REAL, count) :
+				throw TypeError();
 		}
 
 		ColumnInfo createCol(const std::string &cmd, const Range paramRange) {
@@ -75,13 +75,15 @@ namespace db {
 			loopIn(i, 1, vparams.size()) {
 				auto range = vparams[i];
 				const ColumnInfo columnInfo = createCol(cmd, range);
-				if (tableInfo.column(columnInfo.name) >=0) {
+				if (tableInfo.column(columnInfo.name) >= 0) {
 					throw std::invalid_argument("duplicate column name");
 				}
 				tableInfo.columns.push_back(columnInfo);
 			}
 
 			context.database->tables.push_back(tableInfo);
+
+			//TODO: Add Table data/index/... files
 			context.saveDatabaseInfo();
 
 			return context.done();
@@ -97,11 +99,12 @@ namespace db {
 				throw std::invalid_argument("table does not exists");
 			}
 			context.database->tables.erase(context.database->tables.begin() + tablePos);
+			
+			//TODO: Remove Table Files
 			context.saveDatabaseInfo();
+
 			return context.done();
 		}
-
-
 
 	}
 }

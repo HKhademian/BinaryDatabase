@@ -6,6 +6,53 @@
 
 namespace db {
 	namespace ctx {
+		std::vector<DataRow> &join(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target);
+
+		std::vector<DataRow> &merge(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target);
+
+		std::vector<DataRow> &delta(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target);
+
+
+		std::vector<DataRow> &join(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target) {
+			if (&result != &source) {
+				result = std::vector<DataRow>(source);
+				//result.insert(result.end(), source.begin(), source.end());
+			}
+			return delta(result, source, target);
+		}
+
+		std::vector<DataRow> &merge(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target) {
+			for (const auto &elt:target) {
+				bool exists = false;
+				for (const auto &els : source) {
+					if (elt.unique() == els.unique()) {
+						exists = true;
+						break;
+					}
+				}
+				if (exists) {
+					result.push_back(elt);
+				}
+			}
+			return result;
+		}
+
+		std::vector<DataRow> &delta(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target) {
+			for (const auto &elt:target) {
+				bool exists = false;
+				for (const auto &els : source) {
+					if (elt.unique() == els.unique()) {
+						exists = true;
+						break;
+					}
+				}
+				if (!exists) {
+					result.push_back(elt);
+				}
+			}
+			return result;
+		}
+
 
 		Eval (evalSelect) {
 			if (vparams.empty() || vparams.size() > 2) {
@@ -16,7 +63,6 @@ namespace db {
 			if (tablePos < 0) {
 				throw std::invalid_argument("table does not exists");
 			}
-
 			const auto &table = context.database->tables[tablePos];
 			context.table = (TableInfo *) &table;
 
@@ -25,8 +71,8 @@ namespace db {
 			}
 
 			// TODO: check previous rows
-			auto rows = loadRows(table);
-			context.rows = new std::vector<DataRow>(rows);
+			auto rows = context.rows ? *context.rows : loadRows(table);
+			context.rows = context.rows ?: new std::vector<DataRow>(rows);
 
 			return eval(context, cmd, vparams[1]);
 		}
@@ -38,18 +84,19 @@ namespace db {
 			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
 
 			// TODO: check previous rows
-			auto rows = loadRows(table);
-			context.rows = new std::vector<DataRow>(rows);
+			auto rows = context.rows ? *context.rows : loadRows(table);
+			context.rows = context.rows ?: new std::vector<DataRow>(rows);
 
 			Context *currentContext = &context;
 			for (const auto &vparam: vparams) {
+				//TODO: DELETE OLD
 				currentContext = eval(*currentContext, cmd, vparam);
 				if (currentContext->hasError()) {
 					return currentContext;
 				}
 			}
 
-			return eval(context, cmd, vparams[1]);
+			return currentContext->done();
 		}
 
 		Eval (evalOr) {
@@ -59,19 +106,19 @@ namespace db {
 			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
 
 			// TODO: check previous rows
-			auto rows = loadRows(table);
+			auto rows = context.rows ? *context.rows : loadRows(table);
 			context.rows = &rows;
 
-			auto &sum = *new std::vector<DataRow>();
+			auto &result = *new std::vector<DataRow>();
 			for (const auto &vparam: vparams) {
-				Context *result = eval(context, cmd, vparam);
-				if (result->hasError()) {
-					return result;
+				Context *res = eval(context, cmd, vparam);
+				if (res->hasError()) {
+					return res;
 				}
-				//TODO: add(sum, result->rows);
+				join(result, result, *res->rows);
 			}
 
-			context.rows = &sum;
+			context.rows = &result;
 			return context.done();
 		}
 
@@ -82,14 +129,16 @@ namespace db {
 			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
 
 			// TODO: check previous rows
-			auto rows = loadRows(table);
-			context.rows = new std::vector<DataRow>(rows);
+			auto rows = context.rows ? *context.rows : loadRows(table);
+			context.rows = &rows;
 
-			Context *result = eval(context, cmd, vparams[1]);
-			if (result->hasError()) {
-				return result;
+			Context *res = eval(context, cmd, vparams[1]);
+			if (res->hasError()) {
+				return res;
 			}
-			//TODO: remove(rows, result->rows);
+
+			context.rows = new std::vector<DataRow>;
+			delta(*context.rows, rows, *res->rows);
 
 			return context.done();
 		}

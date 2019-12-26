@@ -45,17 +45,20 @@ namespace db {
 			return nullptr;
 		}
 
-		Context *eval(const Context &ctx, const std::string &cmd, Range range) {
-			return snapEval(*new Context(ctx), cmd, range);
+		Context *eval(const Context &context, const std::string &cmd, Range range) {
+			//TODO: track delete pointers
+			return snapEval(*new Context(context), cmd, range);
+			//Context subContext(context);
+			//return snapEval(subContext, cmd, range);
 		}
 
-		Context *snapEval(Context &ctx, const std::string &cmd, Range range) {
+		Context *snapEval(Context &context, const std::string &cmd, Range range) {
 			std::string func;
 
 			EvalP function = chooseFunction(cmd, range, func);
 			if (function) {
 				const auto vparam = paramSplit(cmd, Ranger::func, range);
-				return (*function)(ctx, func, cmd, vparam);
+				return (*function)(context, func, cmd, vparam);
 			}
 
 			throw std::invalid_argument("function not found");
