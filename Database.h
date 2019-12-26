@@ -1,21 +1,16 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include<string>
-#include "DataType.h"
-#include "ColumnInfo.h"
-#include "TableInfo.h"
-#include "DatabaseInfo.h"
-#include "DataCell.h"
-#include "DataRow.h"
+#include "MetaInfo/DataType.h"
+#include "MetaInfo/DataTypeIO.h"
+#include "MetaInfo/ColumnInfo.h"
+#include "MetaInfo/TableInfo.h"
+#include "MetaInfo/DatabaseInfo.h"
+#include "Data/DataCell.h"
+#include "Data/DataRow.h"
+
+#include "Context/Context.h"
+
 #include "utils.h"
-
-
-namespace Database {
-
-	int exec(const std::string *command, ...);
-
-	int execLoadDatabase(const std::string *name);
-}
 
 #endif

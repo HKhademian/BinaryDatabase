@@ -5,7 +5,7 @@
 #include <vector>
 #include "ColumnInfo.h"
 
-namespace Database {
+namespace db {
 	struct TableInfo {
 		std::string name = "";
 		std::vector<ColumnInfo> columns;
@@ -23,6 +23,7 @@ namespace Database {
 
 		size_t getDataOffset(int index) const;
 
+		int column(const std::string &columnName) const;
 	};
 }
 #endif

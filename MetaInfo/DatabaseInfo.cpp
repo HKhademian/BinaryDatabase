@@ -1,12 +1,10 @@
 #include <iostream>
-#include "DataType.h"
 #include "DataTypeIO.h"
-#include "ColumnInfo.h"
 #include "TableInfo.h"
 #include "DatabaseInfo.h"
-#include "utils.h"
+#include "../utils.h"
 
-namespace Database {
+namespace db {
 	std::ostream &operator<<(std::ostream &os, const DatabaseInfo &data) {
 		writeText(os, data.name);
 
@@ -33,6 +31,15 @@ namespace Database {
 		}
 
 		return is;
+	}
+
+	int DatabaseInfo::table(const std::string &tableName) const {
+		loop(i, tables.size()) {
+			if (strcaseequal(tables[i].name, tableName)) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 }

@@ -2,10 +2,9 @@
 #define DATABASE_COLUMN_INFO_H
 
 #include <iostream>
-#include <utility>
 #include "DataType.h"
 
-namespace Database {
+namespace db {
 	struct ColumnInfo {
 		DataType type = 0;
 		std::string name = "";

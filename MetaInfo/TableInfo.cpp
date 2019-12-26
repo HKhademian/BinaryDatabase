@@ -1,11 +1,10 @@
 #include <iostream>
-#include "DataType.h"
 #include "DataTypeIO.h"
 #include "ColumnInfo.h"
 #include "TableInfo.h"
-#include "utils.h"
+#include "../utils.h"
 
-namespace Database {
+namespace db {
 	std::ostream &operator<<(std::ostream &os, const TableInfo &data) {
 		writeText(os, data.name);
 
@@ -50,5 +49,14 @@ namespace Database {
 			offset += col.getRowSize();
 		}
 		return offset;
+	}
+
+	int TableInfo::column(const std::string &columnName) const{
+		loop(i, columns.size()) {
+			if (strcaseequal(columns[i].name, columnName)) {
+				return i;
+			}
+		}
+		return -1;
 	}
 }

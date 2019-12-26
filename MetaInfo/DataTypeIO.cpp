@@ -1,7 +1,7 @@
-#include "utils.h"
+#include "../utils.h"
 #include "DataTypeIO.h"
 
-namespace Database {
+namespace db {
 	std::ostream &writeBin(std::ostream &os, const void *data, const size_t &size) {
 		static const char zeros[100]{0};
 		auto &res = os.write(data == nullptr ? zeros : (char *) data, size);
@@ -34,7 +34,7 @@ namespace Database {
 				isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :
 				isDataType(type, TYPE_INT) ? sizeof(TypeInt) :
 				isDataType(type, TYPE_REAL) ? sizeof(TypeReal) :
-				throw UnsupportedType();
+				throw TypeError();
 		return writeBin(os, data, size * typeCount);
 	}
 
@@ -42,8 +42,8 @@ namespace Database {
 		if (isDataType(type, TYPE_TEXT)) {
 			const auto len = readSize(is);
 			TypeText &value = *(TypeText *) data;
+			value.clear();
 			if (len <= 0) {
-				value = TypeText();
 				return is;
 			}
 			value = TypeText(len, '\0');
@@ -55,7 +55,7 @@ namespace Database {
 				isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :
 				isDataType(type, TYPE_INT) ? sizeof(TypeInt) :
 				isDataType(type, TYPE_REAL) ? sizeof(TypeReal) :
-				throw UnsupportedType();
+				throw TypeError();
 		return readBin(is, data, size * count);
 	}
 
@@ -78,6 +78,10 @@ namespace Database {
 
 	std::istream &readSize(std::istream &is, TypeSize &value) {
 		return readBin(is, &value, sizeof(TypeSize));
+	}
+
+	std::istream &readFlag(std::istream &is, TypeFlag &value) {
+		return readBin(is, &value, sizeof(TypeFlag));
 	}
 
 
@@ -111,6 +115,12 @@ namespace Database {
 		return val;
 	}
 
+	TypeFlag readFlag(std::istream &is) {
+		TypeFlag val;
+		readFlag(is, val);
+		return val;
+	}
+
 	std::ostream &writeByte(std::ostream &os, const TypeByte &value) {
 		return writeBin(os, &value, sizeof(TypeByte));
 	}
@@ -131,13 +141,17 @@ namespace Database {
 		return writeBin(os, &value, sizeof(DataType));
 	}
 
+	std::ostream &writeFlag(std::ostream &os, const TypeFlag &value) {
+		return writeBin(os, &value, sizeof(TypeFlag));
+	}
+
 
 	std::istream &readText(std::istream &is, TypeText &value) {
-		return readData(is, &value, sizeof(DataType));
+		return readData(is, &value, TYPE_TEXT);
 	}
 
 	std::ostream &writeText(std::ostream &os, const TypeText &value) {
-		return writeData(os, &value, sizeof(DataType));
+		return writeData(os, &value, TYPE_TEXT);
 	}
 
 	TypeText readText(std::istream &is) {

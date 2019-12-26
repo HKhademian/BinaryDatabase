@@ -3,7 +3,7 @@
 #include "DataTypeIO.h"
 #include "ColumnInfo.h"
 
-namespace Database {
+namespace db {
 	std::ostream &operator<<(std::ostream &os, const ColumnInfo &data) {
 		writeType(os, data.type);
 		writeText(os, data.name);

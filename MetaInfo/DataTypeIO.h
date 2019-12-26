@@ -4,7 +4,7 @@
 #include <iostream>
 #include "DataType.h"
 
-namespace Database {
+namespace db {
 	std::ostream &write(std::ostream &os, const void *data, const DataType &type);
 	std::istream &read(std::istream &os, void *data, const DataType &type);
 
@@ -18,6 +18,7 @@ namespace Database {
 	std::istream &readReal(std::istream &is, TypeReal &value) ;
 	std::istream &readType(std::istream &is, DataType &value) ;
 	std::istream &readSize(std::istream &is, TypeSize &value) ;
+	std::istream &readFlag(std::istream &is, TypeFlag &value) ;
 	std::istream &readText(std::istream &is, TypeText &value) ;
 
 	TypeSize readSize(std::istream &is);
@@ -26,12 +27,14 @@ namespace Database {
 	TypeReal readReal(std::istream &is);
 	DataType readType(std::istream &is);
 	TypeText readText(std::istream &is);
+	TypeFlag readFlag(std::istream &is);
 
 	std::ostream &writeSize(std::ostream &os, const TypeSize &value);
 	std::ostream &writeByte(std::ostream &os, const TypeByte &value);
 	std::ostream &writeInt(std::ostream &os, const TypeInt &value);
 	std::ostream &writeReal(std::ostream &os, const TypeReal &value);
 	std::ostream &writeType(std::ostream &os, const DataType &value);
+	std::ostream &writeFlag(std::ostream &os, const TypeFlag &value);
 	std::ostream &writeText(std::ostream &os, const TypeText &value);
 }
 #endif

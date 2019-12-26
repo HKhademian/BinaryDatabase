@@ -1,8 +1,6 @@
-#include <iostream>
-#include <stdexcept>
 #include "DataType.h"
 
-namespace Database {
+namespace db {
 	TypeSize getTypeCount(const DataType &type) {
 		return (type >> 2) + 1;
 	}
@@ -13,8 +11,7 @@ namespace Database {
 				isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :
 				isDataType(type, TYPE_INT) ? sizeof(TypeInt) :
 				isDataType(type, TYPE_REAL) ? sizeof(TypeReal) :
-				// isDataType(type, TYPE_TEXT) ? sizeof(TypeByte) :
-				throw UnsupportedType()
+				throw TypeError()
 		);
 	}
 
@@ -25,9 +22,4 @@ namespace Database {
 	bool isDataType(const DataType &type, const DataType &target) {
 		return (type & TYPE_MASK) == (target & TYPE_MASK);
 	}
-
-//	bool isDataVariable(const DataType &type) {
-//		return isDataType(type, TYPE_TEXT);
-//		//return getTypeCount(type) <= 0;
-//	}
 }

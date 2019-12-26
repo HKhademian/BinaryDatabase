@@ -3,9 +3,9 @@
 
 #include "TableInfo.h"
 
-namespace Database {
+namespace db {
 	struct DatabaseInfo {
-		std::string name ="";
+		std::string name = "";
 		std::vector<TableInfo> tables;
 
 		DatabaseInfo() = default;
@@ -16,6 +16,8 @@ namespace Database {
 		friend std::ostream &operator<<(std::ostream &os, const DatabaseInfo &data);
 
 		friend std::istream &operator>>(std::istream &is, DatabaseInfo &data);
+
+		int table(const std::string &tableName) const;
 	};
 
 }
