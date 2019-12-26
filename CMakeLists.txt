@@ -19,10 +19,6 @@ add_library(
         Database.cpp Database.h
 )
 
-ADD_EXECUTABLE(
-        database-test
-        test.cpp
-        test-students.cpp
-        # test-context.cpp
-)
+file(GLOB Tests "test/*.h" "test/*.cpp")
+ADD_EXECUTABLE(database-test ${Tests})
 target_link_libraries(database-test Database)

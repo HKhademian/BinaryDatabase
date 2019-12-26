@@ -6,16 +6,17 @@
 
 namespace db {
 	namespace ctx {
-		EvalP chooseFunction(const std::string &cmd, Range &paramRange, std::string func) {
+		EvalP chooseFunction(const std::string &cmd, Range &range, std::string &func) {
 			static const std::string CMD_CREATE_TABLE = "CreateTable";
 			static const std::string CMD_DELETE_TABLE = "DeleteTable";
 			static const std::string CMD_SELECT = "Select";
 			static const std::string CMD_INSERT = "Insert";
 			static const std::string CMD_REMOVE = "Remove";
 
-			paramTrim(cmd, paramRange);
+			paramTrim(cmd, range);
+			Range paramRange(range);
 			if (paramFindRange(cmd, Ranger::func, paramRange)) {
-				Range funcRange(0, paramRange.start - 1);
+				Range funcRange(range.start, paramRange.start - 1);
 				func = paramSub(cmd, funcRange);
 				if (strcaseequal(func, CMD_CREATE_TABLE)) {
 					return &evalCreateTable;
@@ -44,18 +45,16 @@ namespace db {
 			return nullptr;
 		}
 
-		Result eval(const Context &ctx, const std::string &cmd) {
-			Context state(ctx);
-			return snapEval(state, cmd);
+		Context *eval(const Context &ctx, const std::string &cmd, Range range) {
+			return snapEval(*new Context(ctx), cmd, range);
 		}
 
-		Result snapEval(Context &ctx, const std::string &cmd) {
-			Range paramsRange(0, cmd.size() - 1);
+		Context *snapEval(Context &ctx, const std::string &cmd, Range range) {
 			std::string func;
 
-			EvalP function = chooseFunction(cmd, paramsRange, func);
+			EvalP function = chooseFunction(cmd, range, func);
 			if (function) {
-				const auto vparam = paramSplit(cmd, Ranger::func, paramsRange);
+				const auto vparam = paramSplit(cmd, Ranger::func, range);
 				return (*function)(ctx, func, cmd, vparam);
 			}
 

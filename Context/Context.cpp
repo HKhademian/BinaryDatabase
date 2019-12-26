@@ -1,17 +1,9 @@
 #include<cstdarg>
 #include<string>
-#include<cstring>
-#include <cstring>
 #include <iostream>
 #include <fstream>
-#include "../MetaInfo/DataType.h"
-#include "../MetaInfo/ColumnInfo.h"
-#include "../MetaInfo/TableInfo.h"
 #include "../MetaInfo/DatabaseInfo.h"
-#include "../Data/DataRow.h"
-#include "../utils.h"
 #include "Context.h"
-#include "utils.h"
 #include "Result.h"
 
 namespace db {
@@ -41,24 +33,36 @@ namespace db {
 
 			}
 
-
 			// TODO: some version management
 			if (onOpen)
 				onOpen(*this, version);
 		}
 
-		void Context::close() {
-			// TODO: some extra saving state process
-
-			delete database;
-			database = nullptr;
-
+		void Context::clear() {
 			delete table;
 			table = nullptr;
 
-			columns.clear();
+			delete columns;
+			//columns.clear();
+			columns = nullptr;
 
-			records.clear();
+			delete rows;
+			//rows.clear();
+			rows = nullptr;
+
+			//delete res;
+			//res = nullptr;
+
+			args.clear();
+		}
+
+		void Context::close() {
+			// TODO: some extra saving state process
+
+			clear();
+
+			delete database;
+			database = nullptr;
 		}
 
 		void Context::saveDatabaseInfo() const {
@@ -69,21 +73,29 @@ namespace db {
 			os.close();
 		}
 
-		Result Context::exec(const std::string &cmd, ...) {
-			std::vector<void *> args;
+		void Context::exec(const std::string &cmd, ...) {
+			clear();
 
-			//TODO: implement
+			//TODO: implement varargs
 			va_list vargs;
 			va_start(vargs, cmd);
 			va_end(vargs);
 
-			//TODO: implement
-			return snapEval(*this, cmd);
+			snapEval(*this, cmd, Range(0, cmd.size() - 1));
 		}
 
-		void Context::insert(const DataRow &row) {
-			//TODO: implement
-			throw std::logic_error("not implemented yet!");
+		Context *Context::result(int type, const std::string &message) {
+			this->res.type = Result::DONE;
+			this->res.message = message;
+			return this;
+		}
+
+		Context *Context::done(const std::string &message) {
+			return result(Result::DONE, message);
+		}
+
+		Context *Context::err(const std::string &message) {
+			return result(Result::ERR, message);
 		}
 
 	}

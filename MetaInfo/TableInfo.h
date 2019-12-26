@@ -1,7 +1,6 @@
 #ifndef DATABASE_TABLE_INFO_H
 #define DATABASE_TABLE_INFO_H
 
-#include <utility>
 #include <vector>
 #include "ColumnInfo.h"
 

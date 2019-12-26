@@ -2,12 +2,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "utils.h"
-#include "Database.h"
-#include "MetaInfo/DataType.h"
-#include "MetaInfo/ColumnInfo.h"
-#include "MetaInfo/TableInfo.h"
-#include "Data/DataRow.h"
+#include "../utils.h"
+#include "../Database.h"
+#include "../MetaInfo/DataType.h"
+#include "../MetaInfo/ColumnInfo.h"
+#include "../MetaInfo/TableInfo.h"
+#include "../Data/DataRow.h"
 
 using namespace std;
 using namespace db;
@@ -103,7 +103,7 @@ int main() {
 //		//os << "Cell1PK: " << cellPK1 << endl;
 //
 //		DataCell cellName1(colName);
-//		cellName1.setText("Hossain Khademian");
+//		cellName1.setValueText("Hossain Khademian");
 //		row1.cells.push_back(cellName1);
 //		//os << "Cell1Name: " << cellName1 << endl;
 //	}

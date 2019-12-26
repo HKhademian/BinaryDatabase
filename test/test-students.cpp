@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
-#include "Database.h"
+#include "../Database.h"
 
 using namespace std;
 using namespace db;
@@ -52,7 +52,7 @@ void mainStudents() {
 //		//os << "Cell1PK: " << cellPK1 << endl;
 //
 //		DataCell cellName1(colName);
-//		cellName1.setText("Hossain Khademian");
+//		cellName1.setValueText("Hossain Khademian");
 //		row1.cells.push_back(cellName1);
 //		//os << "Cell1Name: " << cellName1 << endl;
 //	}
@@ -123,10 +123,10 @@ void menuAdd() {
 	cin >> grade;
 
 	DataRow row(tableStudents);
-	row.atColumn(colNum).setValue(num++);
-	row.atColumn(colName).setValue(name);
-	row.atColumn(colYear).setValue(year);
-	row.atColumn(colGrade).setValue(grade);
+	row.atColumn(colNum).setValueInt(num++);
+	row.atColumn(colName).setValueText(name);
+	row.atColumn(colYear).setValueInt(year);
+	row.atColumn(colGrade).setValueReal(grade);
 
 	ofstream os;
 	os.open(file, ios::in | ios::app | ios::binary);

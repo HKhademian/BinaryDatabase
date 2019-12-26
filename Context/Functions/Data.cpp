@@ -43,11 +43,11 @@ namespace db {
 				for (const auto &field : fields) {
 					setDataCell(context, row, cmd, field);
 				}
-				context.insert(row);
+				insert(row);
 				done++;
 			}
 
-			return Result(Result::DONE);
+			return context.done();
 		}
 
 		Eval (evalRemove) {
@@ -61,7 +61,7 @@ namespace db {
 			}
 			context.database->tables.erase(context.database->tables.begin() + tablePos);
 			context.saveDatabaseInfo();
-			return Result(Result::DONE);
+			return context.done();
 		}
 
 	}

@@ -13,13 +13,10 @@ namespace db {
 
 			int type = ERR;
 			std::string message;
-			void *value = nullptr;
 
-			explicit Result(int typ = ERR, std::string msg = std::string(), void *val = nullptr) :
-				type(typ), message(std::move(msg)), value(val) {}
+			explicit Result(int typ = ERR, std::string msg = std::string()) :
+				type(typ), message(std::move(msg)) {}
 		};
-
-		static const auto RESULT_ERR = Result(Result::ERR); // NOLINT(cert-err58-cpp,cppcoreguidelines-interfaces-global-init)
 	}
 }
 #endif

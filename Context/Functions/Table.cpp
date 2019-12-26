@@ -84,7 +84,7 @@ namespace db {
 			context.database->tables.push_back(tableInfo);
 			context.saveDatabaseInfo();
 
-			return Result(Result::DONE);
+			return context.done();
 		}
 
 		Eval (evalDeleteTable) {

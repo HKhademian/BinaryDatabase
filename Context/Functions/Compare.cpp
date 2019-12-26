@@ -53,7 +53,8 @@ namespace db {
 				}
 			}
 
-			return RESULT_ERR; //TODO: SelectResult
+			//TODO: SelectResult
+			return context.done();
 		}
 	}
 }

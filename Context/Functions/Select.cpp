@@ -23,19 +23,18 @@ namespace db {
 				throw std::invalid_argument("table does not exists");
 			}
 
-			std::vector<size_t> &records = context.records;
-			records.clear();
 			const auto &table = context.database->tables[tablePos];
 			context.table = (TableInfo *) &table;
 
 			if (vparams.size() == 1) {
-				return RESULT_ERR; // TODO: SelectResult
+				return context.err(); // TODO: SelectResult
 			}
 
-			// TODO: load record offsets
+			// TODO: check previous rows
+			auto rows = loadRows(table);
+			context.rows = new std::vector<DataRow>(rows);
 
-			const auto query = paramSub(cmd, vparams[1]);
-			return eval(context, query);
+			return eval(context, cmd, vparams[1]);
 		}
 	}
 }
