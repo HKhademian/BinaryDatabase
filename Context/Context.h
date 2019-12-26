@@ -53,6 +53,8 @@ namespace db {
 			Context *done(const std::string &message = "");
 
 			Context *err(const std::string &message = "");
+
+			bool hasError();
 		};
 	}
 }

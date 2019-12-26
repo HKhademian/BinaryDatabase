@@ -98,5 +98,9 @@ namespace db {
 			return result(Result::ERR, message);
 		}
 
+		bool Context::hasError() {
+			return res.type = Result::ERR;
+		}
+
 	}
 }

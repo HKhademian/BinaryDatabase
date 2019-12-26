@@ -15,7 +15,7 @@ namespace db {
 				return l - r;
 			}
 			if (isDataType(type, TYPE_INT)) {
-				const auto &l = *(TypeReal *) lhs.getValue(), &r = *(TypeReal *) rhs.getValue();
+				const auto &l = *(TypeInt *) lhs.getValue(), &r = *(TypeInt *) rhs.getValue();
 				return l - r;
 			}
 			if (isDataType(type, TYPE_REAL)) {
