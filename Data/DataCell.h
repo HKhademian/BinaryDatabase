@@ -2,13 +2,14 @@
 #define DATABASE_DATA_CELL_H
 
 #include <iostream>
-#include "DataType.h"
-#include "DataTypeIO.h"
-#include "ColumnInfo.h"
+#include "../MetaInfo/DataType.h"
+#include "../MetaInfo/DataTypeIO.h"
+#include "../MetaInfo/ColumnInfo.h"
 
-namespace Database {
+namespace db {
 	struct DataCell {
 		explicit DataCell(const ColumnInfo &col);
+		~ DataCell();
 
 		explicit DataCell(const ColumnInfo &col, const DataType &type, const void *val) :
 				DataCell(col) {
@@ -49,29 +50,27 @@ namespace Database {
 
 		friend std::istream &operator>>(std::istream &is, DataCell &self);
 
-		const void *setValue(const void *val, const DataType &type);
+		void setValue(const void *val, const DataType &type);
 
-		const void *setValue(const void *val);
+		void setValue(const void *val);
 
-		const void *setValue(const TypeByte &val);
+		void setValue(const TypeByte &val);
 
-		const void *setValue(const TypeInt &val);
+		void setValue(const TypeInt &val);
 
-		const void *setValue(const TypeReal &val);
+		void setValue(const TypeReal &val);
 
-		const void *setValue(const TypeText &val);
+		void setValue(const TypeText &val);
 
 		const void *getValue() const;
 
-		const TypeByte *getByte() const;
+		const TypeByte *getByte(size_t pos = 0) const;
 
-		const TypeInt *getInt() const;
+		const TypeInt *getInt(size_t pos = 0) const;
 
-		const TypeReal *getReal() const;
+		const TypeReal *getReal(size_t pos = 0) const;
 
 		const TypeText *getText() const;
-
-		void freeValue();
 
 		void clearValue();
 

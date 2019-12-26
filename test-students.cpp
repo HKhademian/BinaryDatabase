@@ -4,7 +4,7 @@
 #include "Database.h"
 
 using namespace std;
-using namespace Database;
+using namespace db;
 
 struct MenuItem {
 	string title;

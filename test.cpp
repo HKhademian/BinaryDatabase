@@ -4,22 +4,26 @@
 #include <sstream>
 #include "utils.h"
 #include "Database.h"
-#include "DataType.h"
-#include "ColumnInfo.h"
-#include "TableInfo.h"
-#include "DataRow.h"
+#include "MetaInfo/DataType.h"
+#include "MetaInfo/ColumnInfo.h"
+#include "MetaInfo/TableInfo.h"
+#include "Data/DataRow.h"
 
 using namespace std;
-using namespace Database;
+using namespace db;
 
-const auto file = "test.bin";
 
 int main() {
-	void mainStudents();
-	mainStudents();
+	void mainContext();
+	mainContext();
 	return 0;
+
+	//void mainStudents();
+	//mainStudents();
+	//return 0;
 }
 
+//const auto file = "test.bin";
 //void test1() {
 //	{
 //		ofstream os;
