@@ -18,6 +18,8 @@ namespace db {
 		ColumnInfo &getColumn(Context &context, TableInfo &table, const std::string &cmd, Range range);
 
 		const ColumnInfo &getColumn(Context &context, const TableInfo &table, const std::string &cmd, Range range);
+
+		DataCell parseValue(Context &context, const ColumnInfo &column, const std::string &cmd, Range range);
 	}
 }
 #endif

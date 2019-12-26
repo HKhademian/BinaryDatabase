@@ -61,6 +61,28 @@ namespace db {
 			return table.columns[columnPos];
 		}
 
+		DataCell parseValue(Context &context, const ColumnInfo &column, const std::string &cmd, Range range) {
+			const auto &type = column.type;
+			const auto &param = paramSub(cmd, range);
+			DataCell cell(column);
+
+			if (isDataType(type, TYPE_BYTE)) {
+				//TODO: handle list
+				cell.setValueByte(std::stoi(param));
+			} else if (isDataType(type, TYPE_INT)) {
+				//TODO: handle list
+				cell.setValueInt(std::stol(param));
+			} else if (isDataType(type, TYPE_REAL)) {
+				//TODO: handle list
+				cell.setValueReal(std::stod(param));
+			} else if (isDataType(type, TYPE_TEXT)) {
+				cell.setValueText(param);
+			} else {
+				throw TypeError();
+			}
+
+			return cell;
+		}
 
 	}
 }

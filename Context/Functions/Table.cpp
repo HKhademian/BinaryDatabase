@@ -98,7 +98,7 @@ namespace db {
 			}
 			context.database->tables.erase(context.database->tables.begin() + tablePos);
 			context.saveDatabaseInfo();
-			return Result(Result::DONE);
+			return context.done();
 		}
 
 

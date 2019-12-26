@@ -8,10 +8,11 @@ namespace db {
 	TypeSize getTypeSize(const DataType &type) {
 		const auto len = getTypeCount(type);
 		return len * (
-				isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :
-				isDataType(type, TYPE_INT) ? sizeof(TypeInt) :
-				isDataType(type, TYPE_REAL) ? sizeof(TypeReal) :
-				throw TypeError()
+			isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :
+			isDataType(type, TYPE_INT) ? sizeof(TypeInt) :
+			isDataType(type, TYPE_REAL) ? sizeof(TypeReal) :
+			isDataType(type, TYPE_TEXT) ? 0 :
+			throw TypeError()
 		);
 	}
 

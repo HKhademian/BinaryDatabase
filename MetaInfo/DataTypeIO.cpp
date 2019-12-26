@@ -4,22 +4,21 @@
 namespace db {
 	std::ostream &writeBin(std::ostream &os, const void *data, const size_t &size) {
 		static const char zeros[100]{0};
-		auto &res = os.write(data == nullptr ? zeros : (char *) data, size);
-		if (!res) {
-			throw std::out_of_range("stream is ended.");
+		if (os.write(data == nullptr ? zeros : (char *) data, size)) {
+			return os;
 		}
-		return res;
+		throw std::out_of_range("stream is ended.");
 	}
 
 	std::istream &readBin(std::istream &is, void *data, const size_t &size) {
 		if (data == nullptr) { // skip data
-			return is.seekg(size, std::istream::cur);
+			if (!is.seekg(size, std::istream::cur)) {
+				return is;
+			}
+		} else if (is.read((char *) data, size)) {
+			return is;
 		}
-		auto &res = is.read((char *) data, size);
-		if (!res) {
-			throw std::out_of_range("stream is ended.");
-		}
-		return res;
+		throw std::out_of_range("stream is ended.");
 	}
 
 	std::ostream &writeData(std::ostream &os, const void *data, const DataType &type) {
@@ -31,10 +30,10 @@ namespace db {
 
 		const auto typeCount = getTypeCount(type);
 		const size_t size =
-				isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :
-				isDataType(type, TYPE_INT) ? sizeof(TypeInt) :
-				isDataType(type, TYPE_REAL) ? sizeof(TypeReal) :
-				throw TypeError();
+			isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :
+			isDataType(type, TYPE_INT) ? sizeof(TypeInt) :
+			isDataType(type, TYPE_REAL) ? sizeof(TypeReal) :
+			throw TypeError();
 		return writeBin(os, data, size * typeCount);
 	}
 
@@ -52,10 +51,10 @@ namespace db {
 
 		const auto count = getTypeCount(type);
 		const size_t size =
-				isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :
-				isDataType(type, TYPE_INT) ? sizeof(TypeInt) :
-				isDataType(type, TYPE_REAL) ? sizeof(TypeReal) :
-				throw TypeError();
+			isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :
+			isDataType(type, TYPE_INT) ? sizeof(TypeInt) :
+			isDataType(type, TYPE_REAL) ? sizeof(TypeReal) :
+			throw TypeError();
 		return readBin(is, data, size * count);
 	}
 

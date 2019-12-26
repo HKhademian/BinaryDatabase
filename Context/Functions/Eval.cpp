@@ -59,7 +59,6 @@ namespace db {
 			}
 
 			throw std::invalid_argument("function not found");
-			return RESULT_ERR;
 		}
 
 	}

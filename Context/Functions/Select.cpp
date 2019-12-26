@@ -1,13 +1,6 @@
 #include<string>
-#include<cstring>
-#include <iostream>
-#include "../../MetaInfo/DataType.h"
-#include "../../MetaInfo/ColumnInfo.h"
 #include "../../MetaInfo/TableInfo.h"
-#include "../../utils.h"
-#include "../params.h"
-#include "../Result.h"
-#include "../Context.h"
+#include "../../Data/DataTable.h"
 #include "Eval.h"
 #include "Functions.h"
 
