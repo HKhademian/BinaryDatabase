@@ -2,12 +2,19 @@
 #include "DataRow.h"
 
 namespace db {
-	TypeFlag rowFlag(bool isFree) {
-		return isFree ? 0 : 1;
+	void rowFlag(TypeFlag &flag, bool isFree) {
+		flag &= ~(1 << 0);//clear free flag
+		flag |= (isFree ? 0 : 1) << 0; // set free flag
 	}
 
-	bool isRowFree(TypeFlag row) {
-		return (row & 1) == 1;
+	TypeFlag rowFlag(bool isFree) {
+		TypeFlag flag = 0;
+		rowFlag(flag, isFree);
+		return flag;
+	}
+
+	bool isRowFree(TypeFlag flag) {
+		return (flag & ((TypeFlag) 1 << 0)) == 0;
 	}
 
 	DataRow::DataRow(const TableInfo &info) : table(info) {
@@ -36,8 +43,15 @@ namespace db {
 
 	std::ostream &operator<<(std::ostream &os, DataRow &self) {
 		if (isRowFree(self.flag)) { // free record
-			if (self.sizeOnDisk) { // has size
-				os.seekp(self.offset, std::ostream::beg);
+			if (self.sizeOnDisk > 0 && self.sizeOnDisk != -1) { // has size
+				if (self.offset == -1) {
+					//TODO: maybe zero old data
+					// TODO: choose free records write variable size data len or not
+					os.seekp(std::ostream::end);
+					self.offset = os.tellp();
+				} else {
+					os.seekp(self.offset, std::ostream::beg);
+				}
 				writeFlag(os, self.flag);
 				writeSize(os, self.sizeOnDisk);
 			}
@@ -45,14 +59,15 @@ namespace db {
 		}
 
 		const auto rowSize = self.getRowSize();
-		if (self.sizeOnDisk < rowSize) { // need new space
-			// delete this
-			writeFlag(os, rowFlag(true));
+		if (self.sizeOnDisk == -1 || self.sizeOnDisk < rowSize) { // need new space
+			if (self.offset != -1) {// delete this record
+				writeFlag(os, rowFlag(true));
+			}
 			self.sizeOnDisk = 0;
 		}
-		if (self.sizeOnDisk <= 0) { // new allocation
+		if (self.sizeOnDisk == 0 || self.sizeOnDisk == -1) { // new allocation
 			// TODO: find some other available rows
-			os.seekp(std::ios::end);
+			os.seekp(0, std::ios::end);
 			self.offset = os.tellp();
 			self.sizeOnDisk = rowSize;
 		}
@@ -61,10 +76,8 @@ namespace db {
 		writeFlag(os, self.flag);
 		writeSize(os, self.sizeOnDisk);
 
-		if (!isRowFree(self.flag)) {
-			for (const auto &col : self.table.columns) {
-				os << *self.cells.at(col.name);
-			}
+		for (const auto &col : self.table.columns) {
+			os << *self.cells.at(col.name);
 		}
 
 		return os;
@@ -132,6 +145,18 @@ namespace db {
 
 	DataCell &DataRow::atColumn(const ColumnInfo &column) const {
 		return *cells.at(column.name);
+	}
+
+	bool DataRow::isFree() const {
+		return isRowFree(flag);
+	}
+
+	void DataRow::setFree(bool isFree) {
+		rowFlag(this->flag, isFree);
+	}
+
+	size_t DataRow::unique() const {
+		return offset;
 	}
 
 }

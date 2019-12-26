@@ -51,8 +51,14 @@ namespace db {
 		return loadRows(table, std::vector<ColumnInfo>());
 	}
 
-	void insert(const DataRow &row) {
-		//TODO: implement
-		throw std::logic_error("not implemented yet!");
+	void insertData(DataRow &row) {
+		const auto &path = row.table.getDataFilePath();
+		std::ofstream os;
+		os.open(path, std::ios::in | std::ios::out | std::ios::binary);
+		if (!os) {
+			os.open(path, std::ios::out | std::ios::binary);
+		}
+		os << row;
+		os.close();
 	}
 }

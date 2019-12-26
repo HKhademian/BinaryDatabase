@@ -47,16 +47,19 @@ namespace db {
 			} else {
 				value = new TypeText(*(TypeText *) source);
 			}
+			value == nullptr;
 		} else if (isDataType(type, TYPE_BYTE)) {
 			auto *target = (TypeByte *) (value = (value ?: new TypeByte[count]));
-			std::copy(target, target + count, (TypeByte *) source);
-//			memcpy (value, source, sizeof(TypeByte) * count);
+			memcpy(target, source, sizeof(TypeByte) * count);
+			value == nullptr;
 		} else if (isDataType(type, TYPE_INT)) {
 			auto *target = (TypeInt *) (value = (value ?: new TypeInt[count]));
-			std::copy(target, target + count, (TypeInt *) source);
+			memcpy(target, source, sizeof(TypeInt) * count);
+			value == nullptr;
 		} else if (isDataType(type, TYPE_REAL)) {
 			auto *target = (TypeReal *) (value = (value ?: new TypeReal[count]));
-			std::copy(target, target + count, (TypeReal *) source);
+			memcpy(target, source, sizeof(TypeReal) * count);
+			value == nullptr;
 		} else {
 			throw TypeError();
 		}
@@ -91,6 +94,7 @@ namespace db {
 	}
 
 	void DataCell::clearValue() {
+		if (value == nullptr)return;
 		const auto &type = column.type;
 		const auto &count = getTypeCount(type);
 		if (isDataType(type, TYPE_TEXT)) {

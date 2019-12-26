@@ -7,7 +7,7 @@
 namespace db {
 	std::vector<DataRow> loadRows(const TableInfo &table);
 
-	void insert(const DataRow &row) ;
+	void insertData(DataRow &row);
 }
 
 #endif

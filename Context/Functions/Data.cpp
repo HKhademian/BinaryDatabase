@@ -12,10 +12,6 @@
 
 namespace db {
 	namespace ctx {
-		void setDataCell(Context &context, DataCell &cell, const std::string &cmd, Range range) {
-			//TODO: set by col type
-		}
-
 		void setDataCell(Context &context, DataRow &row, const std::string &cmd, Range range) {
 			const auto parts = paramSplit(cmd, Ranger::non, range, '=');
 			if (parts.size() != 2) {
@@ -24,7 +20,7 @@ namespace db {
 			const auto &col = getColumn(context, row.table, cmd, parts[0]);
 			auto &cell = row.atColumn(col);
 
-			setDataCell(context, cell, cmd, parts[1]);
+			parseValue(context, cell, cmd, parts[1]);
 		}
 
 		Eval (evalInsert) {
@@ -41,10 +37,11 @@ namespace db {
 				}
 				const auto fields = paramSplit(cmd, Ranger::set, setRange);
 				DataRow row(table);
+				row.setFree(false);
 				for (const auto &field : fields) {
 					setDataCell(context, row, cmd, field);
 				}
-				insert(row);
+				insertData(row);
 				done++;
 			}
 

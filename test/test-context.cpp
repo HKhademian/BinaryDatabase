@@ -13,19 +13,20 @@ bool shell(Context &context, const string &cmd) {
 	cerr << flush;
 	try {
 		cout << ++line << ") " << cmd << endl;
-		context.exec(cmd);
+		auto *result = context.exec(cmd);
 
-		if (context.res.type == Result::DONE) {
+		if (result->res.type == Result::DONE) {
 			cout << line << ": " << "DONE!" << endl;
-		} else if (context.res.type == Result::ERR) {
+			return true;
+		} else if (result->res.type == Result::ERR) {
 			cerr << line << ": " << "ERR!" << endl;
+			return false;
 		}
 
-		return true;
 	} catch (exception &err) {
 		cerr << line << ": " << err.what() << endl;
-		return false;
 	}
+	return false;
 }
 
 void onDatabaseOpen(Context &context, int version) {
@@ -36,13 +37,26 @@ void onDatabaseOpen(Context &context, int version) {
 //
 //	shell(context, "select(\"test1\", col5    : int)");
 //	shell(context, "eq(col5,2)");
-	shell(context, "select(  test1,   eq(col5,2)    )");
+//	shell(context, "select(  test1,   eq(col5,2)    )");
 //
 //	shell(context, "insert(\"test1\", col5    = int)");
 //	shell(context, "insert(test1, {col5    : int})");
 //	shell(context, "insert(test3, {col5    = int})");
 //	shell(context, "insert(mytbl2, {col5    = int})");
 //	shell(context, "insert(mytbl2, {col1    = 10})");
+
+	if (shell(context, "CREATETABLE(students, id:int, name:text, grade:real, year:byte)")) {
+		shell(context, "Insert     (students, {id=1, name='Hossain Khademian', grade=18.9,  year=97})");
+		shell(context, "Insert     (students, {id=2, name=`Saeed Khademian`,   grade=18.0,  year=94})");
+		shell(context, "Insert     (students, {id=3, name=\"Unknown\",         grade=-1.1,  year=95})");
+		shell(context, "Insert     (students, {id=3, name=Unknown,             grade=-1.1,  year=95})");
+	}
+	shell(context, "Select     (students, eq(id, 2))");
+	shell(context, "Select     (students, ge(id, 2))");
+	shell(context, "Select     (students, le(id, 2))");
+
+	shell(context, "Select     (students, not( le(id, 2)) )");
+
 }
 
 void mainContext() {
