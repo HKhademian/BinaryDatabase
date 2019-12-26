@@ -2,6 +2,7 @@
 #include "../../utils.h"
 #include "Eval.h"
 #include "Functions.h"
+#include "../../Data/DataTable.h"
 
 namespace db {
 	namespace ctx {
@@ -66,11 +67,17 @@ namespace db {
 				throw std::invalid_argument("illegal param count");
 			}
 			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
-			const auto &rows = *(context.rows ?: throw std::invalid_argument("select before compare"));
+			auto &rows = *(context.rows ?: throw std::invalid_argument("select before compare"));
 			const auto &column = getColumn(context, table, cmd, vparams[0]);
 			const auto &rhs = parseValue(context, column, cmd, vparams[1]);
 
 			// TODO: check previous rows
+			{
+				std::vector<ColumnInfo> cols;
+				cols.push_back(column);
+				loadData(table, cols, rows);
+			}
+
 			auto &result = *new std::vector<DataRow>();
 
 			const int rowCount = rows.size();

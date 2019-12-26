@@ -11,6 +11,40 @@ namespace db {
 		reset();
 	}
 
+	void DataCell::allocData() {
+		if (value) return;
+		const auto &type = column.type;
+		const auto &count = getTypeCount(type);
+		if (isDataType(type, TYPE_TEXT)) {
+			value = new TypeText;
+		} else if (isDataType(type, TYPE_BYTE)) {
+			value = new TypeByte[count];
+		} else if (isDataType(type, TYPE_INT)) {
+			value = new TypeInt[count];
+		} else if (isDataType(type, TYPE_REAL)) {
+			value = new TypeReal[count];
+		} else {
+			throw TypeError();
+		}
+	}
+
+	void DataCell::freeData() {
+		if (!value) return;
+		const auto &type = column.type;
+		const auto &count = getTypeCount(type);
+		if (isDataType(type, TYPE_TEXT)) {
+			delete (TypeText *) value;
+		} else if (isDataType(type, TYPE_BYTE)) {
+			delete[] (TypeByte *) value;
+		} else if (isDataType(type, TYPE_INT)) {
+			delete[] (TypeInt *) value;
+		} else if (isDataType(type, TYPE_REAL)) {
+			delete[] (TypeReal *) value;
+		} else {
+			throw TypeError();
+		}
+	}
+
 
 	std::ostream &operator<<(std::ostream &os, const DataCell &self) {
 		const auto &type = self.column.type;
@@ -21,6 +55,7 @@ namespace db {
 		const auto &type = self.column.type;
 		const auto &staticCount = getTypeCount(type);
 
+		self.allocData();
 		if (isDataType(type, TYPE_TEXT)) {
 			return readData(is, self.value, type);
 		}
@@ -40,26 +75,16 @@ namespace db {
 		if (!isDataType(column.type, type))
 			throw TypeError(TypeError::MSG_MISMATCH);
 
+		allocData();
 		const auto &count = getTypeCount(type);
 		if (isDataType(type, TYPE_TEXT)) {
-			if (value) {
-				*(TypeText *) value = *(TypeText *) source;
-			} else {
-				value = new TypeText(*(TypeText *) source);
-			}
-			value == nullptr;
+			*(TypeText *) value = *(TypeText *) source;
 		} else if (isDataType(type, TYPE_BYTE)) {
-			auto *target = (TypeByte *) (value = (value ?: new TypeByte[count]));
-			memcpy(target, source, sizeof(TypeByte) * count);
-			value == nullptr;
+			memcpy(value, source, sizeof(TypeByte) * count);
 		} else if (isDataType(type, TYPE_INT)) {
-			auto *target = (TypeInt *) (value = (value ?: new TypeInt[count]));
-			memcpy(target, source, sizeof(TypeInt) * count);
-			value == nullptr;
+			memcpy(value, source, sizeof(TypeInt) * count);
 		} else if (isDataType(type, TYPE_REAL)) {
-			auto *target = (TypeReal *) (value = (value ?: new TypeReal[count]));
-			memcpy(target, source, sizeof(TypeReal) * count);
-			value == nullptr;
+			memcpy(value, source, sizeof(TypeReal) * count);
 		} else {
 			throw TypeError();
 		}
@@ -113,16 +138,7 @@ namespace db {
 	}
 
 	void DataCell::reset() {
-		const auto &type = column.type;
-		if (isDataType(type, TYPE_TEXT)) {
-			delete (TypeText *) value;
-		} else if (isDataType(type, TYPE_BYTE)) {
-			delete[] (TypeByte *) value;
-		} else if (isDataType(type, TYPE_INT)) {
-			delete[] (TypeInt *) value;
-		} else if (isDataType(type, TYPE_REAL)) {
-			delete[] (TypeReal *) value;
-		}
+		freeData();
 	}
 
 	const void *DataCell::getValue() const {

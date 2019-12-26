@@ -55,11 +55,11 @@ void onDatabaseOpen(Context &context, int version) {
 		shell(context, "Insert     (students, {id=3, name=\"Unknown\",         grade=-1.1,  year=95})");
 		shell(context, "Insert     (students, {id=3, name=Unknown,             grade=-1.1,  year=95})");
 	}
-	//shell(context, "Select     (students, eq(id, 2))");
-	//shell(context, "Select     (students, ge(id, 2))");
-	//shell(context, "Select     (students, le(id, 2))");
-
+	shell(context, "Select     (students, eq(id, 2))");
+	shell(context, "Select     (students, ge(id, 2))");
+	shell(context, "Select     (students, le(id, 2))");
 	shell(context, "Select     (students, not( eq(id, 2)) )");
+	shell(context, "Select     (students, nge(id, 5))");
 
 }
 

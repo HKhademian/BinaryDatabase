@@ -12,13 +12,14 @@ namespace db {
 
 	std::istream &readBin(std::istream &is, void *data, const size_t &size) {
 		if (data == nullptr) { // skip data
-			if (!is.seekg(size, std::istream::cur)) {
-				return is;
-			}
-		} else if (is.read((char *) data, size)) {
-			return is;
+			is.seekg(size, std::istream::cur);
+		} else {
+			is.read((char *) data, size);
 		}
-		throw std::out_of_range("stream is ended.");
+		if (!is) {
+			throw std::out_of_range("stream is ended.");
+		}
+		return is;
 	}
 
 	std::ostream &writeData(std::ostream &os, const void *data, const DataType &type) {

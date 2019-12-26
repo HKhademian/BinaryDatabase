@@ -4,6 +4,7 @@
 namespace db {
 	std::vector<DataRow> loadData(std::ifstream &is, const TableInfo &table, std::vector<DataRow> &rows, const std::vector<ColumnInfo> &columns) {
 		for (auto &row:rows) {
+			is.seekg(row.offset, std::ifstream::beg);
 			row.readData(is, columns);
 		}
 		return rows;
@@ -15,8 +16,8 @@ namespace db {
 
 	std::vector<DataRow> loadData(const TableInfo &table, const std::vector<ColumnInfo> &columns, std::vector<DataRow> &rows) {
 		std::ifstream is;
-		is.open(table.getDataFilePath(), std::ios::in);
-		is.seekg(std::ifstream::beg);
+		is.open(table.getDataFilePath(), std::ios::in | std::ios::out | std::ios::binary);
+		is.seekg(0, std::ifstream::beg);
 		loadData(is, table, rows, columns);
 		is.close();
 		return rows;
@@ -26,10 +27,10 @@ namespace db {
 		std::vector<DataRow> rows;
 
 		std::ifstream is;
-		is.open(table.getDataFilePath(), std::ios::in);
-		is.seekg(std::ifstream::beg);
+		is.open(table.getDataFilePath(), std::ios::in | std::ios::out | std::ios::binary);
+		is.seekg(0, std::ifstream::beg);
 
-		while (is.good()) {
+		while (is) {
 			DataRow row(table);
 			try {
 				row.readInfo(is);

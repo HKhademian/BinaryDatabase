@@ -90,6 +90,11 @@ namespace db {
 
 		/// has static position on row or need to calculate
 		bool hasOffset();
+
+	private:
+		void allocData();
+
+		void freeData();
 	};
 }
 #endif

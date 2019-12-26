@@ -16,11 +16,11 @@ namespace db {
 	protected:
 		TypeFlag flag = rowFlag(false);
 		size_t sizeOnDisk = 0;
-		size_t offset = -1;
 		std::map<std::string, DataCell *> cells;
 
 	public:
 		const TableInfo &table;
+		size_t offset = -1;
 
 		explicit DataRow(const TableInfo &info);
 
@@ -40,7 +40,8 @@ namespace db {
 
 		void setFree(bool isFree);
 
-		size_t unique() const ;
+		size_t unique() const;
+
 	};
 }
 

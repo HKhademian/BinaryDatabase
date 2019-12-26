@@ -76,7 +76,15 @@ namespace db {
 		writeFlag(os, self.flag);
 		writeSize(os, self.sizeOnDisk);
 
-		for (const auto &col : self.table.columns) {
+		for (const auto &col : self.table.columns) { // first fixed types
+			auto &cell = *self.cells.at(col.name);
+			if (cell.size == 0 || cell.size == -1) continue;
+			os << *self.cells.at(col.name);
+		}
+
+		for (const auto &col : self.table.columns) { // then variant types
+			auto &cell = *self.cells.at(col.name);
+			if (cell.size != 0 && cell.size != -1) continue;
 			os << *self.cells.at(col.name);
 		}
 
@@ -90,7 +98,15 @@ namespace db {
 			return is;
 		}
 
-		for (const auto &col : self.table.columns) {
+		for (const auto &col : self.table.columns) { // first fixed types
+			auto &cell = *self.cells.at(col.name);
+			if (cell.size == 0 || cell.size == -1) continue;
+			is >> *self.cells.at(col.name);
+		}
+
+		for (const auto &col : self.table.columns) { // then variant types
+			auto &cell = *self.cells.at(col.name);
+			if (cell.size != 0 && cell.size != -1) continue;
 			is >> *self.cells.at(col.name);
 		}
 
@@ -102,10 +118,9 @@ namespace db {
 		flag = readFlag(is);
 		sizeOnDisk = readSize(is);
 
-
 		size_t cellOffset = 0;
-		for (auto &cellPair : cells) { // first static types
-			auto &cell = *cellPair.second;
+		for (const auto &col : table.columns) { // first fixed types
+			auto &cell = *cells.at(col.name);
 			if (cell.size == 0 || cell.size == -1) continue;
 			cell.clearValue();
 			cell.offsetOnRow = cellOffset;
@@ -113,8 +128,8 @@ namespace db {
 			cellOffset += diskSize;
 			is.seekg(diskSize, std::istream::cur);
 		}
-		for (auto &cellPair : cells) { // then variant types
-			auto &cell = *cellPair.second;
+		for (const auto &col : table.columns) { // then variant types
+			auto &cell = *cells.at(col.name);
 			if (cell.size != 0 && cell.size != -1) continue;
 			cell.clearValue();
 			cell.offsetOnRow = cellOffset;
@@ -129,7 +144,7 @@ namespace db {
 	std::istream &DataRow::readData(std::istream &is, const std::vector<ColumnInfo> &columns) {
 		for (auto &column:columns) {
 			auto &cell = atColumn(column);
-			is.seekg(offset + cell.offsetOnRow);
+			is.seekg(offset + cell.offsetOnRow + sizeof(TypeFlag) + sizeof(TypeSize), std::istream::beg);
 			is >> cell;
 		}
 		return is;
