@@ -9,9 +9,12 @@ namespace db {
 		EvalP chooseFunction(const std::string &cmd, Range &range, std::string &func) {
 			static const std::string CMD_CREATE_TABLE = "CreateTable";
 			static const std::string CMD_DELETE_TABLE = "DeleteTable";
-			static const std::string CMD_SELECT = "Select";
 			static const std::string CMD_INSERT = "Insert";
 			static const std::string CMD_REMOVE = "Remove";
+			static const std::string CMD_SELECT = "Select";
+			static const std::string CMD_AND = "And";
+			static const std::string CMD_OR = "Or";
+			static const std::string CMD_NOT = "Not";
 
 			paramTrim(cmd, range);
 			Range paramRange(range);
@@ -24,15 +27,25 @@ namespace db {
 				if (strcaseequal(func, CMD_DELETE_TABLE)) {
 					return &evalDeleteTable;
 				}
-				if (strcaseequal(func, CMD_SELECT)) {
-					return &evalSelect;
-				}
 
 				if (strcaseequal(func, CMD_INSERT)) {
 					return &evalInsert;
 				}
 				if (strcaseequal(func, CMD_REMOVE)) {
 					return &evalRemove;
+				}
+
+				if (strcaseequal(func, CMD_SELECT)) {
+					return &evalSelect;
+				}
+				if (strcaseequal(func, CMD_AND)) {
+					return &evalAnd;
+				}
+				if (strcaseequal(func, CMD_OR)) {
+					return &evalOr;
+				}
+				if (strcaseequal(func, CMD_NOT)) {
+					return &evalNot;
 				}
 
 				if (strcaseequal(func, "eq") || strcaseequal(func, "neq") || strcaseequal(func, "ne") ||
@@ -45,14 +58,14 @@ namespace db {
 			return nullptr;
 		}
 
-		Context *eval(const Context &context, const std::string &cmd, Range range) {
+		Context &eval(const Context &context, const std::string &cmd, Range range) {
 			//TODO: track delete pointers
 			return snapEval(*new Context(context), cmd, range);
 			//Context subContext(context);
 			//return snapEval(subContext, cmd, range);
 		}
 
-		Context *snapEval(Context &context, const std::string &cmd, Range range) {
+		Context &snapEval(Context &context, const std::string &cmd, Range range) {
 			std::string func;
 
 			EvalP function = chooseFunction(cmd, range, func);

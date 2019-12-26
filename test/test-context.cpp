@@ -13,12 +13,16 @@ bool shell(Context &context, const string &cmd) {
 	cerr << flush;
 	try {
 		cout << ++line << ") " << cmd << endl;
-		auto *result = context.exec(cmd);
+		auto &result = context.exec(cmd);
 
-		if (result->res.type == Result::DONE) {
-			cout << line << ": " << "DONE!" << endl;
+		if (result.res.type == Result::DONE) {
+			cout << line << ": " << "DONE!";
+			if (result.rows != nullptr) {
+				cout << " (" << result.rows->size() << ")";
+			}
+			cout << endl;
 			return true;
-		} else if (result->res.type == Result::ERR) {
+		} else if (result.res.type == Result::ERR) {
 			cerr << line << ": " << "ERR!" << endl;
 			return false;
 		}
@@ -51,11 +55,11 @@ void onDatabaseOpen(Context &context, int version) {
 		shell(context, "Insert     (students, {id=3, name=\"Unknown\",         grade=-1.1,  year=95})");
 		shell(context, "Insert     (students, {id=3, name=Unknown,             grade=-1.1,  year=95})");
 	}
-	shell(context, "Select     (students, eq(id, 2))");
-	shell(context, "Select     (students, ge(id, 2))");
-	shell(context, "Select     (students, le(id, 2))");
+	//shell(context, "Select     (students, eq(id, 2))");
+	//shell(context, "Select     (students, ge(id, 2))");
+	//shell(context, "Select     (students, le(id, 2))");
 
-	shell(context, "Select     (students, not( le(id, 2)) )");
+	shell(context, "Select     (students, not( eq(id, 2)) )");
 
 }
 

@@ -38,16 +38,16 @@ namespace db {
 		}
 
 		std::vector<DataRow> &delta(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target) {
-			for (const auto &elt:target) {
+			for (const auto &els : source) {
 				bool exists = false;
-				for (const auto &els : source) {
+				for (const auto &elt:target) {
 					if (elt.unique() == els.unique()) {
 						exists = true;
 						break;
 					}
 				}
 				if (!exists) {
-					result.push_back(elt);
+					result.push_back(els);
 				}
 			}
 			return result;
@@ -90,9 +90,9 @@ namespace db {
 			Context *currentContext = &context;
 			for (const auto &vparam: vparams) {
 				//TODO: DELETE OLD
-				currentContext = eval(*currentContext, cmd, vparam);
+				currentContext = &eval(*currentContext, cmd, vparam);
 				if (currentContext->hasError()) {
-					return currentContext;
+					return *currentContext;
 				}
 			}
 
@@ -111,11 +111,11 @@ namespace db {
 
 			auto &result = *new std::vector<DataRow>();
 			for (const auto &vparam: vparams) {
-				Context *res = eval(context, cmd, vparam);
-				if (res->hasError()) {
+				Context &res = eval(context, cmd, vparam);
+				if (res.hasError()) {
 					return res;
 				}
-				join(result, result, *res->rows);
+				join(result, result, *res.rows);
 			}
 
 			context.rows = &result;
@@ -132,13 +132,13 @@ namespace db {
 			auto rows = context.rows ? *context.rows : loadRows(table);
 			context.rows = &rows;
 
-			Context *res = eval(context, cmd, vparams[1]);
-			if (res->hasError()) {
+			Context &res = eval(context, cmd, vparams[0]);
+			if (res.hasError()) {
 				return res;
 			}
 
 			context.rows = new std::vector<DataRow>;
-			delta(*context.rows, rows, *res->rows);
+			delta(*context.rows, rows, *res.rows);
 
 			return context.done();
 		}

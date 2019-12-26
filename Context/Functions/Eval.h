@@ -8,8 +8,8 @@
 
 namespace db {
 	namespace ctx {
-#define Eval(evalFunc) Context* evalFunc (Context &context, const std::string &func, const std::string &cmd, const std::vector<Range>& vparams)
-#define EvalConst(evalFunc) Context* evalFunc (const Context &context, const std::string &func, const std::string &cmd, const std::vector<Range>& vparams)
+#define Eval(evalFunc) Context& evalFunc (Context &context, const std::string &func, const std::string &cmd, const std::vector<Range>& vparams)
+#define EvalConst(evalFunc) Context& evalFunc (const Context &context, const std::string &func, const std::string &cmd, const std::vector<Range>& vparams)
 
 		typedef Eval ((*EvalP));
 

@@ -74,7 +74,7 @@ namespace db {
 			os.close();
 		}
 
-		Context *Context::exec(const std::string &cmd, ...) {
+		Context &Context::exec(const std::string &cmd, ...) {
 			clear();
 
 			//TODO: implement varargs
@@ -85,17 +85,17 @@ namespace db {
 			return snapEval(*this, cmd, Range(0, cmd.size() - 1));
 		}
 
-		Context *Context::result(int type, const std::string &message) {
+		Context &Context::result(int type, const std::string &message) {
 			this->res.type = Result::DONE;
 			this->res.message = message;
-			return this;
+			return *this;
 		}
 
-		Context *Context::done(const std::string &message) {
+		Context &Context::done(const std::string &message) {
 			return result(Result::DONE, message);
 		}
 
-		Context *Context::err(const std::string &message) {
+		Context &Context::err(const std::string &message) {
 			return result(Result::ERR, message);
 		}
 
