@@ -5,6 +5,7 @@
 #include "../../MetaInfo/TableInfo.h"
 #include "../../Data/DataRow.h"
 #include "../../Data/DataCell.h"
+#include "../../Data/DataTable.h"
 #include "../../utils.h"
 #include "Eval.h"
 #include "Functions.h"

@@ -12,7 +12,7 @@ namespace db {
 		TableInfo() = default;
 
 		explicit TableInfo(std::string nam) :
-				name(std::move(nam)) {}
+			name(std::move(nam)) {}
 
 		friend std::ostream &operator<<(std::ostream &os, const TableInfo &data);
 
@@ -23,6 +23,10 @@ namespace db {
 		size_t getDataOffset(int index) const;
 
 		int column(const std::string &columnName) const;
+
+		std::string getDataFilePath() const {
+			return "./tbl-" + name + ".dat";
+		}
 	};
 }
 #endif

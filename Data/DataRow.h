@@ -6,12 +6,13 @@
 #include "DataCell.h"
 
 namespace db {
-	TypeFlag rowflag(bool free);
-	bool isRowFree(TypeFlag rowflag);
+	TypeFlag rowFlag(bool free);
+
+	bool isRowFree(TypeFlag flag);
 
 	class DataRow {
 	protected:
-		TypeFlag flag = rowflag(true);
+		TypeFlag flag = rowFlag(true);
 		size_t sizeOnDisk = -1;
 		size_t offset = -1;
 		std::map<std::string, DataCell *> cells;
@@ -28,6 +29,10 @@ namespace db {
 		friend std::istream &operator>>(std::istream &is, DataRow &self);
 
 		friend std::ostream &operator<<(std::ostream &os, DataRow &self);
+
+		std::istream &readInfo(std::istream &is);
+
+		std::istream &readData(std::istream &is, const std::vector<ColumnInfo> &columns);
 	};
 }
 

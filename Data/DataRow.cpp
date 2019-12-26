@@ -2,25 +2,42 @@
 #include "DataRow.h"
 
 namespace db {
-	TypeFlag rowflag(bool isFree) {
+	TypeFlag rowFlag(bool isFree) {
 		return isFree ? 0 : 1;
 	}
 
-	bool isRowFree(TypeFlag rowflag) {
-		return rowflag & 1;
+	bool isRowFree(TypeFlag row) {
+		return (row & 1) == 1;
 	}
 
-
 	DataRow::DataRow(const TableInfo &info) : table(info) {
+		size_t cellOffset = 0;
+		//add static size columns
 		for (const auto &col : table.columns) {
-			cells.insert(std::pair<std::string, DataCell *>(col.name, new DataCell(col)));
+			const auto size = col.getRowSize();
+			if (size <= 0 || size == -1) continue;
+			cells.insert(std::pair<std::string, DataCell *>(
+				col.name,
+				new DataCell(col, cellOffset)
+			));
+			cellOffset += size;
+		}
+		//add variable size columns
+		for (const auto &col : table.columns) {
+			const auto size = col.getRowSize();
+			if (size > 0 && size != -1) continue;
+			cells.insert(std::pair<std::string, DataCell *>(
+				col.name,
+				new DataCell(col, cellOffset)
+			));
+			cellOffset = -1; // uint max means veriable
 		}
 	}
 
 	std::ostream &operator<<(std::ostream &os, DataRow &self) {
 		if (isRowFree(self.flag)) { // free record
 			if (self.sizeOnDisk) { // has size
-				os.seekp(self.offset, os.beg);
+				os.seekp(self.offset, std::ostream::beg);
 				writeFlag(os, self.flag);
 				writeSize(os, self.sizeOnDisk);
 			}
@@ -30,7 +47,7 @@ namespace db {
 		const auto rowSize = self.getRowSize();
 		if (self.sizeOnDisk < rowSize) { // need new space
 			// delete this
-			writeFlag(os, rowflag(true));
+			writeFlag(os, rowFlag(true));
 			self.sizeOnDisk = 0;
 		}
 		if (self.sizeOnDisk <= 0) { // new allocation
@@ -40,7 +57,7 @@ namespace db {
 			self.sizeOnDisk = rowSize;
 		}
 
-		os.seekp(self.offset, os.beg);
+		os.seekp(self.offset, std::ostream::beg);
 		writeFlag(os, self.flag);
 		writeSize(os, self.sizeOnDisk);
 
@@ -54,19 +71,54 @@ namespace db {
 	}
 
 	std::istream &operator>>(std::istream &is, DataRow &self) {
-		for (auto &cell : self.cells) {
-			cell.second->clearValue();
-		}
+		self.readInfo(is);
 
-		const size_t dataSize = readSize(is);
-		if (dataSize <= 0) {
-			return is; // deleted row
+		if (isRowFree(self.flag)) {
+			return is;
 		}
 
 		for (const auto &col : self.table.columns) {
 			is >> *self.cells.at(col.name);
 		}
 
+		return is;
+	}
+
+	std::istream &DataRow::readInfo(std::istream &is) {
+		offset = is.tellg();
+		flag = readFlag(is);
+		sizeOnDisk = readSize(is);
+
+
+		size_t cellOffset = 0;
+		for (auto &cellPair : cells) { // first static types
+			auto &cell = *cellPair.second;
+			if (cell.size == 0 || cell.size == -1) continue;
+			cell.clearValue();
+			cell.offsetOnRow = cellOffset;
+			auto diskSize = cell.size;
+			cellOffset += diskSize;
+			is.seekg(diskSize, std::istream::cur);
+		}
+		for (auto &cellPair : cells) { // then variant types
+			auto &cell = *cellPair.second;
+			if (cell.size != 0 && cell.size != -1) continue;
+			cell.clearValue();
+			cell.offsetOnRow = cellOffset;
+			auto diskSize = readSize(is);
+			cellOffset += diskSize + sizeof(TypeSize);
+			is.seekg(diskSize, std::istream::cur);
+		}
+
+		return is;
+	}
+
+	std::istream &DataRow::readData(std::istream &is, const std::vector<ColumnInfo> &columns) {
+		for (auto &column:columns) {
+			auto &cell = atColumn(column);
+			is.seekg(offset + cell.offsetOnRow);
+			is >> cell;
+		}
 		return is;
 	}
 
@@ -81,4 +133,5 @@ namespace db {
 	DataCell &DataRow::atColumn(const ColumnInfo &column) const {
 		return *cells.at(column.name);
 	}
+
 }
