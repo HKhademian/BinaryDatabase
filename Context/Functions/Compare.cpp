@@ -11,19 +11,31 @@ namespace db {
 			}
 			const auto &type = lhs.column.type;
 			if (isDataType(type, TYPE_BYTE)) {
-				const auto &l = *(TypeByte *) lhs.getValue(), &r = *(TypeByte *) rhs.getValue();
+				const auto *pl = (TypeByte *) lhs.getValue(), *pr = (TypeByte *) rhs.getValue();
+				if (pl == nullptr) return pr == nullptr ? 0 : -1;
+				if (pr == nullptr) return 1;
+				const auto &l = *pl, &r = *pr;
 				return l - r;
 			}
 			if (isDataType(type, TYPE_INT)) {
-				const auto &l = *(TypeInt *) lhs.getValue(), &r = *(TypeInt *) rhs.getValue();
+				const auto *pl = (TypeInt *) lhs.getValue(), *pr = (TypeInt *) rhs.getValue();
+				if (pl == nullptr) return (pr == nullptr ? 0 : -1);
+				if (pr == nullptr) return 1;
+				const auto &l = *pl, &r = *pr;
 				return l - r;
 			}
 			if (isDataType(type, TYPE_REAL)) {
-				const auto &l = *(TypeReal *) lhs.getValue(), &r = *(TypeReal *) rhs.getValue();
+				const auto *pl = (TypeReal *) lhs.getValue(), *pr = (TypeReal *) rhs.getValue();
+				if (pl == nullptr) return pr == nullptr ? 0 : -1;
+				if (pr == nullptr) return 1;
+				const auto &l = *pl, &r = *pr;
 				return l > r ? 1 : l < r ? -1 : 0;
 			}
 			if (isDataType(type, TYPE_TEXT)) {
-				const auto &l = *(TypeText *) lhs.getValue(), &r = *(TypeText *) rhs.getValue();
+				const auto *pl = (TypeText *) lhs.getValue(), *pr = (TypeText *) rhs.getValue();
+				if (pl == nullptr) return pr == nullptr ? 0 : -1;
+				if (pr == nullptr) return 1;
+				const auto &l = *pl, &r = *pr;
 				return l.compare(r);
 			}
 			throw TypeError();
@@ -58,19 +70,19 @@ namespace db {
 			const auto &column = getColumn(context, table, cmd, vparams[0]);
 			const auto &rhs = parseValue(context, column, cmd, vparams[1]);
 
-			std::vector<DataRow> result;
-			const auto rowCount = rows.size();
-			if (rowCount > 0) {
-				for (size_t i = rowCount - 1; i >= 0; i--) {
-					const auto &row = rows[i];
-					const auto &lhs = row.atColumn(column);
-					if (cmp(lhs, rhs)) {
-						result.push_back(rows[i]);
-					}
+			// TODO: check previous rows
+			auto &result = *new std::vector<DataRow>();
+
+			const int rowCount = rows.size();
+			loop(i, rowCount) {
+				const auto &row = rows[i];
+				const auto &lhs = row.atColumn(column);
+				if (cmp(lhs, rhs)) {
+					result.push_back(rows[i]);
 				}
 			}
 
-			//TODO: SelectResult
+			context.rows = &result;
 			return context.done();
 		}
 	}
