@@ -47,12 +47,13 @@ namespace db {
 			if (vparams.size() != 1) {
 				throw std::invalid_argument("illegal param count");
 			}
-			const auto tableName = parseTableName(cmd, vparams[0]);
-			const auto tablePos = context.database->table(tableName);
+			const auto &tableName = parseTableName(cmd, vparams[0]);
+			auto &db = (DatabaseInfo&) context.db();
+			const auto tablePos = db.tablePos(tableName);
 			if (tablePos < 0) {
 				throw std::invalid_argument("table does not exists");
 			}
-			context.database->tables.erase(context.database->tables.begin() + tablePos);
+			db.tables.erase(db.tables.begin() + tablePos);
 			context.saveDatabaseInfo();
 			return context.done();
 		}

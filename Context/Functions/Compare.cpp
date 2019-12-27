@@ -3,8 +3,6 @@
 #include "../../Data/DataTable.h"
 #include "../utils.h"
 #include "Eval.h"
-#include "Functions.h"
-#include "../../Data/DataTable.h"
 
 namespace db {
 	namespace ctx {
@@ -32,10 +30,10 @@ namespace db {
 			if (vparams.size() != 2) {
 				throw std::invalid_argument("illegal param count");
 			}
-			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
-			auto &rows = *(context.rows ?: throw std::invalid_argument("select before compare"));
+			const auto &table = *(context.ptbl() ?: throw std::invalid_argument("query outside of Select"));
 			const auto &column = getColumn(context, table, cmd, vparams[0]);
 			const auto &rhs = parseValue(context, column, cmd, vparams[1]);
+			auto &rows = (std::vector<DataRow> &) context.rows();
 
 			// TODO: check previous rows
 			{
@@ -44,8 +42,7 @@ namespace db {
 				loadData(table, cols, rows);
 			}
 
-			auto &result = *new std::vector<DataRow>();
-
+			std::vector<DataRow> result;
 			const int rowCount = rows.size();
 			loop(i, rowCount) {
 				const auto &row = rows[i];
@@ -55,7 +52,7 @@ namespace db {
 				}
 			}
 
-			context.rows = &result;
+			context.rows(result);
 			return context.done();
 		}
 	}

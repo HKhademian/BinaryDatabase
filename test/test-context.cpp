@@ -15,10 +15,11 @@ bool shell(Context &context, const string &cmd) {
 		cout << ++line << ") " << cmd << endl;
 		auto &result = context.exec(cmd);
 
-		if (result.res.type == Result::DONE) {
+		if (!result.hasError()) {
 			cout << line << ": " << "DONE!";
-			if (result.rows != nullptr) {
-				cout << " (" << result.rows->size() << ")";
+			const auto &rows = result.rows();
+			if (!rows.empty()) {
+				cout << " (" << rows.size() << ")";
 			}
 			cout << endl;
 			return true;

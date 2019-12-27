@@ -54,70 +54,81 @@ namespace db {
 
 
 		Eval (evalSelect) {
-			if (vparams.empty() || vparams.size() > 2) {
+			if (vparams.empty() || vparams.size() > 3) {
 				throw std::invalid_argument("illegal param count");
 			}
+			const auto &db = context.db();
 			const auto tableName = parseTableName(cmd, vparams[0]);
-			const auto tablePos = context.database->table(tableName);
-			if (tablePos < 0) {
-				throw std::invalid_argument("table does not exists");
-			}
-			const auto &table = context.database->tables[tablePos];
-			context.table = (TableInfo *) &table;
+			const auto ptable = db.table(tableName) ?: throw std::invalid_argument("table does not exists");
+			const auto &table = *ptable;
+			context.tbl(ptable);
 
-			if (vparams.size() == 1) {
+			// TODO: check previous rows
+			context.rows(loadRows(table));
+			//const auto &rows = context.rows();
+
+			if (vparams.size() == 1) { // no query, return all available rows
+				return context.done();
+			}
+
+			const Range queryRange = vparams[vparams.size() - 1];
+			auto res = eval(context, cmd, queryRange);
+
+			if (res.hasError()) {
 				return context.err(); // TODO: SelectResult
 			}
 
-			// TODO: check previous rows
-			auto rows = context.rows ? *context.rows : loadRows(table);
-			context.rows = context.rows ?: new std::vector<DataRow>(rows);
+			if (vparams.size() == 1) { // no select and query
+				return context.done();
+			}
 
-			return eval(context, cmd, vparams[1]);
+			// TODO: implement
+			return context.todo();
 		}
 
 		Eval (evalAnd) {
 			if (vparams.size() < 2) {
 				throw std::invalid_argument("illegal param count (at least 2)");
 			}
-			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
+			const auto &table = *(context.ptbl() ?: throw std::invalid_argument("query outside of Select"));
 
-			// TODO: check previous rows
-			auto rows = context.rows ? *context.rows : loadRows(table);
-			context.rows = context.rows ?: new std::vector<DataRow>(rows);
+//			// TODO: check previous rows
+//			const auto &rows = context.rows();
+//
+//			// TODO: IMPLEMENT
+//			Context *currentContext = &context;
+//			for (const auto &vparam: vparams) {
+//				//TODO: DELETE OLD
+//				currentContext = &eval(*currentContext, cmd, vparam);
+//				if (currentContext->hasError()) {
+//					return *currentContext;
+//				}
+//			  // TODO: delete res context
+//			}
 
-			Context *currentContext = &context;
-			for (const auto &vparam: vparams) {
-				//TODO: DELETE OLD
-				currentContext = &eval(*currentContext, cmd, vparam);
-				if (currentContext->hasError()) {
-					return *currentContext;
-				}
-			}
-
-			return currentContext->done();
+			return context.todo();
 		}
 
 		Eval (evalOr) {
 			if (vparams.size() < 2) {
 				throw std::invalid_argument("illegal param count (at least 2)");
 			}
-			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
+			const auto &table = *(context.ptbl() ?: throw std::invalid_argument("query outside of Select"));
 
 			// TODO: check previous rows
-			auto rows = context.rows ? *context.rows : loadRows(table);
-			context.rows = &rows;
+			const auto &rows = context.rows();
 
-			auto &result = *new std::vector<DataRow>();
+			std::vector<DataRow> result;
 			for (const auto &vparam: vparams) {
 				Context &res = eval(context, cmd, vparam);
 				if (res.hasError()) {
-					return res;
+					return context.err();
 				}
-				join(result, result, *res.rows);
+				join(result, result, res.rows(false));
+				// TODO: delete res context
 			}
 
-			context.rows = &result;
+			context.rows(result);
 			return context.done();
 		}
 
@@ -125,20 +136,19 @@ namespace db {
 			if (vparams.size() != 1) {
 				throw std::invalid_argument("illegal param count (exactly 1)");
 			}
-			const auto &table = *(context.table ?: throw std::invalid_argument("query outside of Select"));
+			const auto &table = *(context.ptbl() ?: throw std::invalid_argument("query outside of Select"));
 
 			// TODO: check previous rows
-			auto rows = context.rows ? *context.rows : loadRows(table);
-			context.rows = &rows;
+			auto rows = loadRows(table);
 
 			Context &res = eval(context, cmd, vparams[0]);
 			if (res.hasError()) {
-				return res;
+				return context.err();
 			}
+			delta(rows, rows, res.rows(false));
+			// TODO: delete res context
 
-			context.rows = new std::vector<DataRow>;
-			delta(*context.rows, rows, *res.rows);
-
+			context.rows(rows);
 			return context.done();
 		}
 

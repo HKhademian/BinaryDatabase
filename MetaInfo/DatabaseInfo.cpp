@@ -6,6 +6,7 @@
 
 namespace db {
 	std::ostream &operator<<(std::ostream &os, const DatabaseInfo &data) {
+		writeSize(os, data.version);
 		writeText(os, data.name);
 
 		const auto count = data.tables.size();
@@ -21,6 +22,7 @@ namespace db {
 	std::istream &operator>>(std::istream &is, DatabaseInfo &data) {
 		data.tables.clear();
 
+		readSize(is, data.version);
 		readText(is, data.name);
 
 		const TypeSize count = readSize(is);

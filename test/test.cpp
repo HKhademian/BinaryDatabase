@@ -57,17 +57,17 @@ int main() {
 //		ofstream os;
 //		os.open(file, ios::out | ios::binary);
 //
-//		TableInfo table;
-//		table.name = "Table1";
+//		TableInfo tablePos;
+//		tablePos.name = "Table1";
 //		loopn(i, 10) {
 //			ColumnInfo col;
 //			col.type = dataType(i % 2 ? SIZE_INT : SIZE_REAL);
-//			col.name = table.name + "$Column#" + std::to_string(i);
-//			table.columns.push_back(col);
+//			col.name = tablePos.name + "$Column#" + std::to_string(i);
+//			tablePos.columns.push_back(col);
 //		}
-//		cout << table << endl;
+//		cout << tablePos << endl;
 //
-//		os << table;
+//		os << tablePos;
 //		os.close();
 //	}
 //	cout << endl;

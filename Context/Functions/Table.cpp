@@ -21,7 +21,8 @@ namespace db {
 
 		Eval (evalCreateTable) {
 			const auto &tableName = parseTableName(cmd, vparams[0]);
-			if (context.database->table(tableName) >= 0) {
+			auto &db = (DatabaseInfo &) context.db();
+			if (db.tablePos(tableName) >= 0) {
 				throw std::invalid_argument("table already exists");
 			}
 
@@ -29,13 +30,13 @@ namespace db {
 			loopIn(i, 1, vparams.size()) {
 				auto range = vparams[i];
 				const ColumnInfo columnInfo = createCol(cmd, range);
-				if (tableInfo.column(columnInfo.name) >= 0) {
+				if (tableInfo.columnPos(columnInfo.name) >= 0) {
 					throw std::invalid_argument("duplicate column name");
 				}
 				tableInfo.columns.push_back(columnInfo);
 			}
 
-			context.database->tables.push_back(tableInfo);
+			db.tables.push_back(tableInfo);
 
 			//TODO: Add Table data/index/... files
 			context.saveDatabaseInfo();
@@ -47,14 +48,15 @@ namespace db {
 			if (vparams.size() != 1) {
 				throw std::invalid_argument("illegal param count");
 			}
+			auto &db = (DatabaseInfo &) context.db();
 			const auto tableName = parseTableName(cmd, vparams[0]);
-			const auto tablePos = context.database->table(tableName);
+			const auto tablePos = db.tablePos(tableName);
 			if (tablePos < 0) {
-				throw std::invalid_argument("table does not exists");
+				throw std::invalid_argument("tablePos does not exists");
 			}
-			context.database->tables.erase(context.database->tables.begin() + tablePos);
-			
-			//TODO: Remove Table Files
+			db.tables.erase(db.tables.begin() + tablePos);
+
+			//TODO: Remove Table data/index/... files
 			context.saveDatabaseInfo();
 
 			return context.done();
