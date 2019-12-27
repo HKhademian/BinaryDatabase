@@ -14,9 +14,9 @@ namespace db {
 		explicit ColumnInfo(const DataType &typ, std::string nam) :
 				type(typ), name(std::move(nam)) {}
 
-		friend std::ostream &operator<<(std::ostream &os, const ColumnInfo &self);
+		friend std::ostream &operator<<(std::ostream &os, const ColumnInfo &column);
 
-		friend std::istream &operator>>(std::istream &is, ColumnInfo &self);
+		friend std::istream &operator>>(std::istream &is, ColumnInfo &column);
 
 		bool operator==(const ColumnInfo &rhs) const;
 		bool operator <(const ColumnInfo& rhs) const;

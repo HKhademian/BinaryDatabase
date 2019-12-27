@@ -5,19 +5,22 @@
 
 namespace db {
 	struct DatabaseInfo {
-		std::string name = "";
+		TypeText name = "";
+		TypeSize version = 1;
 		std::vector<TableInfo> tables;
 
 		DatabaseInfo() = default;
 
 		explicit DatabaseInfo(std::string nam) :
-				name(std::move(nam)) {}
+			name(std::move(nam)) {}
 
 		friend std::ostream &operator<<(std::ostream &os, const DatabaseInfo &data);
 
 		friend std::istream &operator>>(std::istream &is, DatabaseInfo &data);
 
-		int table(const std::string &tableName) const;
+		int tablePos(const std::string &tableName) const;
+
+		const TableInfo *table(const std::string &tableName) const;
 	};
 
 }

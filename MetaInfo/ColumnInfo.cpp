@@ -4,15 +4,15 @@
 #include "ColumnInfo.h"
 
 namespace db {
-	std::ostream &operator<<(std::ostream &os, const ColumnInfo &data) {
-		writeType(os, data.type);
-		writeText(os, data.name);
+	std::ostream &operator<<(std::ostream &os, const ColumnInfo &column) {
+		writeType(os, column.type);
+		writeText(os, column.name);
 		return os;
 	}
 
-	std::istream &operator>>(std::istream &is, ColumnInfo &data) {
-		readType(is, data.type);
-		readText(is, data.name);
+	std::istream &operator>>(std::istream &is, ColumnInfo &column) {
+		readType(is, column.type);
+		readText(is, column.name);
 		return is;
 	}
 

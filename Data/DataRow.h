@@ -28,9 +28,9 @@ namespace db {
 
 		DataCell &atColumn(const ColumnInfo &column) const;
 
-		friend std::istream &operator>>(std::istream &is, DataRow &self);
+		friend std::istream &operator>>(std::istream &is, DataRow &row);
 
-		friend std::ostream &operator<<(std::ostream &os, DataRow &self);
+		friend std::ostream &operator<<(std::ostream &os, DataRow &row);
 
 		std::istream &readInfo(std::istream &is);
 

@@ -1,8 +1,8 @@
 #include<string>
 #include "../../Database.h"
 #include "../../utils.h"
+#include "../utils.h"
 #include "Eval.h"
-#include "Functions.h"
 
 namespace db {
 	namespace ctx {

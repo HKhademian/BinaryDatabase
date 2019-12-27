@@ -1,58 +1,24 @@
 #include<string>
 #include "../../utils.h"
+#include "../../Data/DataTable.h"
+#include "../utils.h"
 #include "Eval.h"
 #include "Functions.h"
 #include "../../Data/DataTable.h"
 
 namespace db {
 	namespace ctx {
-		int compare(const DataCell &lhs, const DataCell &rhs) {
-			if (lhs.column.type != rhs.column.type) {
-				throw TypeError("type(rhs!=lhs)");
-			}
-			const auto &type = lhs.column.type;
-			if (isDataType(type, TYPE_BYTE)) {
-				const auto *pl = (TypeByte *) lhs.getValue(), *pr = (TypeByte *) rhs.getValue();
-				if (pl == nullptr) return pr == nullptr ? 0 : -1;
-				if (pr == nullptr) return 1;
-				const auto &l = *pl, &r = *pr;
-				return l - r;
-			}
-			if (isDataType(type, TYPE_INT)) {
-				const auto *pl = (TypeInt *) lhs.getValue(), *pr = (TypeInt *) rhs.getValue();
-				if (pl == nullptr) return (pr == nullptr ? 0 : -1);
-				if (pr == nullptr) return 1;
-				const auto &l = *pl, &r = *pr;
-				return l - r;
-			}
-			if (isDataType(type, TYPE_REAL)) {
-				const auto *pl = (TypeReal *) lhs.getValue(), *pr = (TypeReal *) rhs.getValue();
-				if (pl == nullptr) return pr == nullptr ? 0 : -1;
-				if (pr == nullptr) return 1;
-				const auto &l = *pl, &r = *pr;
-				return l > r ? 1 : l < r ? -1 : 0;
-			}
-			if (isDataType(type, TYPE_TEXT)) {
-				const auto *pl = (TypeText *) lhs.getValue(), *pr = (TypeText *) rhs.getValue();
-				if (pl == nullptr) return pr == nullptr ? 0 : -1;
-				if (pr == nullptr) return 1;
-				const auto &l = *pl, &r = *pr;
-				return l.compare(r);
-			}
-			throw TypeError();
-		};
+		int cmpEQ(const DataValue &lhs, const DataValue &rhs) { return lhs == rhs;/*lhs.compare(rhs) == 0;*/ }
 
-		int cmpEQ(const DataCell &lhs, const DataCell &rhs) { return compare(lhs, rhs) == 0; }
+		int cmpNE(const DataValue &lhs, const DataValue &rhs) { return lhs.compare(rhs) != 0; }
 
-		int cmpNE(const DataCell &lhs, const DataCell &rhs) { return compare(lhs, rhs) != 0; }
+		int cmpGT(const DataValue &lhs, const DataValue &rhs) { return lhs.compare(rhs) > 0; }
 
-		int cmpGT(const DataCell &lhs, const DataCell &rhs) { return compare(lhs, rhs) > 0; }
+		int cmpGE(const DataValue &lhs, const DataValue &rhs) { return lhs.compare(rhs) >= 0; }
 
-		int cmpGE(const DataCell &lhs, const DataCell &rhs) { return compare(lhs, rhs) >= 0; }
+		int cmpLT(const DataValue &lhs, const DataValue &rhs) { return lhs.compare(rhs) < 0; }
 
-		int cmpLT(const DataCell &lhs, const DataCell &rhs) { return compare(lhs, rhs) < 0; }
-
-		int cmpLE(const DataCell &lhs, const DataCell &rhs) { return compare(lhs, rhs) <= 0; }
+		int cmpLE(const DataValue &lhs, const DataValue &rhs) { return lhs.compare(rhs) <= 0; }
 
 		Eval (evalCompare) {
 			const auto cmp =

@@ -7,6 +7,8 @@
 #include <sstream>
 
 namespace db {
+	#define self (*this)
+
 #define loopRange(type, i, begin, end) for(type i=(begin); i<(end); i++)
 #define loopRangeEQ(type, i, begin, end) for(type i=(begin); i<=(end); i++)
 

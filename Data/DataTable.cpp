@@ -16,7 +16,7 @@ namespace db {
 
 	std::vector<DataRow> loadData(const TableInfo &table, const std::vector<ColumnInfo> &columns, std::vector<DataRow> &rows) {
 		std::ifstream is;
-		is.open(table.getDataFilePath(), std::ios::in | std::ios::out | std::ios::binary);
+		is.open(table.getDataPath(), std::ios::in | std::ios::out | std::ios::binary);
 		is.seekg(0, std::ifstream::beg);
 		loadData(is, table, rows, columns);
 		is.close();
@@ -27,7 +27,7 @@ namespace db {
 		std::vector<DataRow> rows;
 
 		std::ifstream is;
-		is.open(table.getDataFilePath(), std::ios::in | std::ios::out | std::ios::binary);
+		is.open(table.getDataPath(), std::ios::in | std::ios::out | std::ios::binary);
 		is.seekg(0, std::ifstream::beg);
 
 		while (is) {
@@ -53,7 +53,7 @@ namespace db {
 	}
 
 	void insertData(DataRow &row) {
-		const auto &path = row.table.getDataFilePath();
+		const auto &path = row.table.getDataPath();
 		std::ofstream os;
 		os.open(path, std::ios::in | std::ios::out | std::ios::binary);
 		if (!os) {

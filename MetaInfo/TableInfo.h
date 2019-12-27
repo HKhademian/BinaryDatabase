@@ -22,9 +22,11 @@ namespace db {
 
 		size_t getDataOffset(int index) const;
 
-		int column(const std::string &columnName) const;
+		int columnPos(const std::string &columnName) const;
 
-		std::string getDataFilePath() const {
+		const ColumnInfo *column(const std::string &columnName) const;
+
+		std::string getDataPath() const {
 			return "./tbl-" + name + ".dat";
 		}
 	};

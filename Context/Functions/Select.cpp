@@ -1,8 +1,7 @@
 #include<string>
-#include "../../MetaInfo/TableInfo.h"
 #include "../../Data/DataTable.h"
+#include "../utils.h"
 #include "Eval.h"
-#include "Functions.h"
 
 namespace db {
 	namespace ctx {

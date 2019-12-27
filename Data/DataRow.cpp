@@ -91,23 +91,23 @@ namespace db {
 		return os;
 	}
 
-	std::istream &operator>>(std::istream &is, DataRow &self) {
-		self.readInfo(is);
+	std::istream &operator>>(std::istream &is, DataRow &row) {
+		row.readInfo(is);
 
-		if (isRowFree(self.flag)) {
+		if (isRowFree(row.flag)) {
 			return is;
 		}
 
-		for (const auto &col : self.table.columns) { // first fixed types
-			auto &cell = *self.cells.at(col.name);
+		for (const auto &col : row.table.columns) { // first fixed types
+			auto &cell = *row.cells.at(col.name);
 			if (cell.size == 0 || cell.size == -1) continue;
-			is >> *self.cells.at(col.name);
+			is >> *row.cells.at(col.name);
 		}
 
-		for (const auto &col : self.table.columns) { // then variant types
-			auto &cell = *self.cells.at(col.name);
+		for (const auto &col : row.table.columns) { // then variant types
+			auto &cell = *row.cells.at(col.name);
 			if (cell.size != 0 && cell.size != -1) continue;
-			is >> *self.cells.at(col.name);
+			is >> *row.cells.at(col.name);
 		}
 
 		return is;
@@ -122,7 +122,7 @@ namespace db {
 		for (const auto &col : table.columns) { // first fixed types
 			auto &cell = *cells.at(col.name);
 			if (cell.size == 0 || cell.size == -1) continue;
-			cell.clearValue();
+			cell.clear();
 			cell.offsetOnRow = cellOffset;
 			auto diskSize = cell.size;
 			cellOffset += diskSize;
@@ -131,7 +131,7 @@ namespace db {
 		for (const auto &col : table.columns) { // then variant types
 			auto &cell = *cells.at(col.name);
 			if (cell.size != 0 && cell.size != -1) continue;
-			cell.clearValue();
+			cell.clear();
 			cell.offsetOnRow = cellOffset;
 			auto diskSize = readSize(is);
 			cellOffset += diskSize + sizeof(TypeSize);

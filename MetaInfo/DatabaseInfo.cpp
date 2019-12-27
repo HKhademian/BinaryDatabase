@@ -1,8 +1,8 @@
 #include <iostream>
-#include "DataTypeIO.h"
+#include "../utils.h"
 #include "TableInfo.h"
 #include "DatabaseInfo.h"
-#include "../utils.h"
+#include "DataTypeIO.h"
 
 namespace db {
 	std::ostream &operator<<(std::ostream &os, const DatabaseInfo &data) {
@@ -23,23 +23,32 @@ namespace db {
 
 		readText(is, data.name);
 
-		const size_t count = readSize(is);
+		const TypeSize count = readSize(is);
 		loop (i, count) {
-			auto el = new TableInfo();
-			is >> *el;
-			data.tables.push_back(*el);
+			auto table = TableInfo(); //auto tablePos = *new TableInfo();
+			is >> table;
+			data.tables.push_back(table);
 		}
 
 		return is;
 	}
 
-	int DatabaseInfo::table(const std::string &tableName) const {
+	int DatabaseInfo::tablePos(const std::string &tableName) const {
 		loop(i, tables.size()) {
 			if (strcaseequal(tables[i].name, tableName)) {
 				return i;
 			}
 		}
 		return -1;
+	}
+
+	const TableInfo *DatabaseInfo::table(const std::string &tableName) const {
+		for (const auto &table : tables) {
+			if (strcaseequal(table.name, tableName)) {
+				return &table;
+			}
+		}
+		return nullptr;
 	}
 
 }

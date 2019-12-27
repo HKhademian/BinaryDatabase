@@ -22,7 +22,7 @@ bool shell(Context &context, const string &cmd) {
 			}
 			cout << endl;
 			return true;
-		} else if (result.res.type == Result::ERR) {
+		} else {
 			cerr << line << ": " << "ERR!" << endl;
 			return false;
 		}

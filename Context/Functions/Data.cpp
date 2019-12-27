@@ -1,14 +1,9 @@
 #include<string>
 #include<cstring>
-#include "../../MetaInfo/DataType.h"
-#include "../../MetaInfo/ColumnInfo.h"
-#include "../../MetaInfo/TableInfo.h"
-#include "../../Data/DataRow.h"
-#include "../../Data/DataCell.h"
 #include "../../Data/DataTable.h"
 #include "../../utils.h"
+#include "../utils.h"
 #include "Eval.h"
-#include "Functions.h"
 
 namespace db {
 	namespace ctx {

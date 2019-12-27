@@ -51,12 +51,21 @@ namespace db {
 		return offset;
 	}
 
-	int TableInfo::column(const std::string &columnName) const{
+	int TableInfo::columnPos(const std::string &columnName) const {
 		loop(i, columns.size()) {
 			if (strcaseequal(columns[i].name, columnName)) {
 				return i;
 			}
 		}
 		return -1;
+	}
+
+	const ColumnInfo *TableInfo::column(const std::string &columnName) const {
+		for (const auto &column : columns) {
+			if (strcaseequal(column.name, columnName)) {
+				return &column;
+			}
+		}
+		return nullptr;
 	}
 }
