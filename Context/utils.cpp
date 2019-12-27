@@ -48,6 +48,10 @@ namespace db {
 		}
 
 		DataValue &parseValue(Context &context, DataValue &value, const std::string &cmd, Range range) {
+			if (isArg(value, context.args(), cmd, range)) {
+				return value;
+			}
+
 			const auto &type = value.type();
 
 			if (isDataType(type, TYPE_TEXT)) {

@@ -75,7 +75,15 @@ namespace db {
 			Context &tbl(TableInfo *ptable);
 
 
+			Context &exec(const char *cmd, ...);
+
 			Context &exec(const std::string &cmd, ...);
+
+			/**
+			 * if there is varargs in another function pass it.
+			 * note: you must close it your self
+			 */
+			Context &Context::execArgs(const std::string &cmd, va_list &vargs);
 
 			Context &open(
 				const std::string &name, int version = 1,

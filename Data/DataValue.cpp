@@ -8,12 +8,12 @@ namespace db {
 	}
 
 	DataValue::DataValue(const DataType &dataType, bool typeChange)
-	: dataType(dataType), typeChange(typeChange) {
+		: dataType(dataType), typeChange(typeChange) {
 		allocSpace();
 	}
 
 	DataValue::DataValue(const DataValue &other)
-	: DataValue(other.dataType, other.typeChange) {}
+		: DataValue(other.dataType, other.typeChange) {}
 
 	bool DataValue::operator<(const DataValue &rhs) const { return self.compare(rhs) < 0; }
 
@@ -196,10 +196,14 @@ namespace db {
 		throw TypeError();
 	}
 
-
 	DataValue &DataValue::setValue(const void *val, const size_t count) {
 		return setValue(val, dataType, count);
 	}
+
+	DataValue &DataValue::setValue(const DataValue &from) {
+		return setValue(from.value, from.dataType, getTypeCount(from.dataType));
+	}
+
 
 	DataValue &DataValue::setValueByte(const TypeByte *val, const size_t count) {
 		return setValue(val, TYPE_BYTE, count);

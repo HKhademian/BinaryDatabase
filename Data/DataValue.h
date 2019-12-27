@@ -63,6 +63,8 @@ namespace db {
 
 		DataValue &setValue(const void *val, size_t count);
 
+		DataValue &setValue(const DataValue& from);
+
 
 		DataValue &setValueByte(const TypeByte *val, size_t count = 1);
 

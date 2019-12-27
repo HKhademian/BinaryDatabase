@@ -100,25 +100,36 @@ namespace db {
 			os.close();
 		}
 
-		Context &Context::exec(const std::string &cmd, ...) {
-			clear();
-
-			//TODO: implement varargs
+		Context &Context::exec(const char *cmd, ...) {
 			va_list vargs;
 			va_start(vargs, cmd);
+			auto &res = execArgs(std::string(cmd), vargs);
+			va_end(vargs);
+			return res;
+		}
 
+		Context &Context::exec(const std::string &cmd, ...) {
+			va_list vargs;
+			va_start(vargs, cmd);
+			auto &res = execArgs(cmd, vargs);
+			va_end(vargs);
+			return res;
+		}
+
+		Context &Context::execArgs(const std::string &cmd, va_list &vargs) {
+			clear();
 			parseCommandArgs(arguments, vargs, cmd);
 
+/*
+			// TODO: DELETE IT
 			for (auto &arg : arguments) {
 				std::cerr << "Arg#" << arg.index << std::endl;
 				for (const auto &argRange: arg.ranges) {
 					std::cerr << "    in [" << argRange.start << "," << argRange.end << "]=" << paramSub(cmd, argRange) << std::endl;
 				}
 			}
-
-			va_end(vargs);
-
 			return self;
+*/
 			return snapEval(*this, cmd, Range(0, cmd.size() - 1));
 		}
 

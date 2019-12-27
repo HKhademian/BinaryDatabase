@@ -18,10 +18,16 @@ namespace db {
 			Argument() : Argument(TYPE_NONE, -1) {}
 		};
 
-		Argument *getArg(std::vector<Argument> &args, const std::string &cmd, Range range);
-
 		void parseCommandArgs(std::vector<Argument> &args, va_list &vargs, const std::string &cmd);
 
+		/// return arg in that range if available
+		const Argument *getArg(const std::vector<Argument> &args, Range range);
+
+		/// getArg with extra paramTrim
+		const Argument *getArg(const std::vector<Argument> &args, const std::string &cmd, Range range);
+
+		/// fill value if available
+		bool isArg(DataValue &value, const std::vector<Argument> &args, const std::string &cmd, Range range);
 	}
 }
 #endif

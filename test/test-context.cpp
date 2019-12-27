@@ -36,9 +36,9 @@ bool shell(Context &context, const string &cmd) {
 
 void onDatabaseOpen(Context &context, int version) {
 	//context.exec("CreateTable(${s1}, ${ s2  } : int, 'col2': byte[${i3}], ${s4}:text) [ { 2, ${r5} }, '', $ { 2}  '', ${i4} ]", "myTable", "col2", 15, "firstname");
-	context.exec("${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
+//	context.exec("${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
 
-	context.exec("${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
+//	context.exec("${2:text} ${1:text} ${3:int} ${text}", "myTable", "col2", 15, "firstname");
 
 	//	shell(context, "CreateTable(\"test1\", col1    : int   , 'col2' :    byte[15], `col3`:text)");
 //	shell(context, "CreateTable(mytbl2, col1:int, c2:real[2], name:char[1])");
@@ -55,12 +55,12 @@ void onDatabaseOpen(Context &context, int version) {
 //	shell(context, "insert(mytbl2, {col5    = int})");
 //	shell(context, "insert(mytbl2, {col1    = 10})");
 //
-//	if (shell(context, "CREATETABLE(students, id:int, name:text, grade:real, year:byte)")) {
-//		shell(context, "Insert     (students, {id=1, name='Hossain Khademian', grade=18.9,  year=97})");
-//		shell(context, "Insert     (students, {id=2, name=`Saeed Khademian`,   grade=18.0,  year=94})");
-//		shell(context, "Insert     (students, {id=3, name=\"Unknown\",         grade=-1.1,  year=95})");
-//		shell(context, "Insert     (students, {id=3, name=Unknown,             grade=-1.1,  year=95})");
-//	}
+	if (shell(context, "CREATETABLE(students, id:int, name:text, grade:real, year:byte)")) {
+		shell(context, "Insert     (students, {id=1, name='Hossain Khademian', grade=18.9,  year=97})");
+		shell(context, "Insert     (students, {id=2, name=`Saeed Khademian`,   grade=18.0,  year=94})");
+		shell(context, "Insert     (students, {id=3, name=\"Unknown\",         grade=-1.1,  year=95})");
+		shell(context, "Insert     (students, {id=3, name=Unknown,             grade=-1.1,  year=95})");
+	}
 //	shell(context, "Select     (students, eq(id, 2))");
 //	shell(context, "Select     (students, ge(id, 2))");
 //	shell(context, "Select     (students, le(id, 2))");

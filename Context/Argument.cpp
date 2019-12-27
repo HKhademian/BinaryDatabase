@@ -53,7 +53,7 @@ namespace db {
 			std::vector<Range> ranges;
 			parseArgRanges(ranges, vargs, cmd, Range(cmd));
 
-			//extract all arguments parameter and assign them their index
+			// extract all arguments parameter and assign them their index
 			int index = 0, max = 0;
 			for (auto &range: ranges) {
 				auto argData = parseArgDataRange(vargs, cmd, range);
@@ -134,8 +134,7 @@ namespace db {
 
 		}
 
-		Argument *getArg(std::vector<Argument> &args, const std::string &cmd, Range range) {
-			paramTrim(cmd, range);
+		const Argument *getArg(const std::vector<Argument> &args, Range range) {
 			for (auto &arg : args) {
 				for (const auto &argRange: arg.ranges) {
 					if (argRange.start == range.start && argRange.end == range.end) {
@@ -146,5 +145,23 @@ namespace db {
 			return nullptr;
 		}
 
+		const Argument *getArg(const std::vector<Argument> &args, const std::string &cmd, Range range) {
+			paramTrim(cmd, range);
+			for (auto &arg : args) {
+				for (const auto &argRange: arg.ranges) {
+					if (argRange.start == range.start && argRange.end == range.end) {
+						return &arg;
+					}
+				}
+			}
+			return getArg(args, range);
+		}
+
+		bool isArg(DataValue &value, const std::vector<Argument> &args, const std::string &cmd, Range range) {
+			auto *arg = getArg(args, cmd, range);
+			if (arg == nullptr) return false;
+			value.setValue(*arg);
+			return true;
+		}
 	}
 }
