@@ -6,7 +6,6 @@
 namespace db {
 	namespace ctx {
 		ColumnInfo createCol(const std::string &cmd, const Range paramRange) {
-			static const auto TYP_SEP = ':';
 			const auto &param = paramSub(cmd, paramRange);
 			const auto sepLoc = param.find(TYP_SEP);
 			if (sepLoc < 0 || sepLoc >= param.size()) {

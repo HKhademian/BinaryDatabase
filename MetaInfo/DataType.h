@@ -10,10 +10,11 @@ namespace db {
 	typedef uint32_t TypeSize;
 	typedef int8_t TypeByte;
 	typedef int32_t TypeInt;
-	typedef float TypeReal;
+	typedef double TypeReal;
 	typedef std::string TypeText;
 	typedef uint16_t TypeFlag;
 
+	static const auto TYPE_NONE = (DataType) -1; // all bits are 1 means no data type yet
 	static const auto TYPE_MASK = (DataType) 0b11;
 	static const auto TYPE_BYTE = (DataType) 0b00;
 	static const auto TYPE_INT = (DataType) 0b01;

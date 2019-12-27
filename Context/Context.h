@@ -8,6 +8,7 @@
 #include "../Data/DataRow.h"
 #include "params.h"
 #include "Result.h"
+#include "Argument.h"
 
 namespace db {
 	namespace ctx {
@@ -30,7 +31,7 @@ namespace db {
 
 		private:
 			const Context *parent = nullptr;
-			std::vector<DataValue> arguments;
+			std::vector<Argument> arguments;
 			std::vector<ColumnInfo> columns;
 			std::vector<DataRow> dataRows;
 			Result result;
@@ -38,7 +39,7 @@ namespace db {
 			TableInfo *table = nullptr;
 
 		public:
-			const std::vector<DataValue> &args(bool include = true) const;
+			const std::vector<Argument> &args(bool include = true) const;
 
 
 			const Result &res(bool include = true) const;

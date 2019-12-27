@@ -7,11 +7,13 @@ namespace db {
 	/// this DataValue can store any available data and data array
 	/// it allocate required space at first and release it at the end
 	struct DataValue {
-		const DataType &type;
+		const bool typeChange = true;
 
 		~ DataValue();
 
-		explicit DataValue(const DataType &type);
+		DataValue(const DataValue &other);
+
+		explicit DataValue(const DataType &type = TYPE_NONE, bool typeChange = true);
 
 		bool operator<(const DataValue &rhs) const;
 
@@ -20,6 +22,7 @@ namespace db {
 		bool operator==(const DataValue &rhs) const;
 
 	private:
+		DataType dataType = TYPE_NONE;
 		void *value = nullptr;
 		bool hasVal = false;
 
@@ -31,6 +34,11 @@ namespace db {
 	public:
 		/// clear value to 0 equivalent
 		DataValue &clear();
+
+		DataType type() const;
+
+		DataValue &type(const DataType &newtype);
+
 
 		bool isInited() const;
 

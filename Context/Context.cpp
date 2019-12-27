@@ -6,6 +6,7 @@
 #include "../MetaInfo/DatabaseInfo.h"
 #include "Context.h"
 #include "Result.h"
+#include "Argument.h"
 
 namespace db {
 	namespace ctx {
@@ -105,13 +106,24 @@ namespace db {
 			//TODO: implement varargs
 			va_list vargs;
 			va_start(vargs, cmd);
+
+			parseCommandArgs(arguments, vargs, cmd);
+
+			for (auto &arg : arguments) {
+				std::cerr << "Arg#" << arg.index << std::endl;
+				for (const auto &argRange: arg.ranges) {
+					std::cerr << "    in [" << argRange.start << "," << argRange.end << "]=" << paramSub(cmd, argRange) << std::endl;
+				}
+			}
+
 			va_end(vargs);
 
+			return self;
 			return snapEval(*this, cmd, Range(0, cmd.size() - 1));
 		}
 
 
-		const std::vector<DataValue> &Context::args(bool include) const {
+		const std::vector<Argument> &Context::args(bool include) const {
 			return
 				include && arguments.empty() && parent != nullptr ?
 				parent->args(include) :

@@ -7,9 +7,13 @@ namespace db {
 		reset();
 	}
 
-	DataValue::DataValue(const DataType &type) : type(type) {
+	DataValue::DataValue(const DataType &dataType, bool typeChange)
+	: dataType(dataType), typeChange(typeChange) {
 		allocSpace();
 	}
+
+	DataValue::DataValue(const DataValue &other)
+	: DataValue(other.dataType, other.typeChange) {}
 
 	bool DataValue::operator<(const DataValue &rhs) const { return self.compare(rhs) < 0; }
 
@@ -17,22 +21,35 @@ namespace db {
 
 	bool DataValue::operator==(const DataValue &rhs) const { return self.compare(rhs) == 0; }
 
+
+	DataType DataValue::type() const {
+		return dataType;
+	}
+
+	DataValue &DataValue::type(const DataType &newtype) {
+		if (dataType == newtype) return self;
+		if (!typeChange) throw std::logic_error("Cannot change dataType");
+		reset();
+		dataType = newtype;
+		return allocSpace();
+	}
+
 	DataValue &DataValue::allocSpace() {
 		if (value) return self;
-		const auto &count = getTypeCount(type);
-		if (isDataType(type, TYPE_TEXT)) {
+		const auto &count = getTypeCount(dataType);
+		if (isDataType(dataType, TYPE_TEXT)) {
 			value = new TypeText;
 			return self;
 		}
-		if (isDataType(type, TYPE_BYTE)) {
+		if (isDataType(dataType, TYPE_BYTE)) {
 			value = new TypeByte[count];
 			return self;
 		}
-		if (isDataType(type, TYPE_INT)) {
+		if (isDataType(dataType, TYPE_INT)) {
 			value = new TypeInt[count];
 			return self;
 		}
-		if (isDataType(type, TYPE_REAL)) {
+		if (isDataType(dataType, TYPE_REAL)) {
 			value = new TypeReal[count];
 			return self;
 		}
@@ -40,20 +57,24 @@ namespace db {
 	}
 
 	DataValue &DataValue::reset() {
-		if (isDataType(type, TYPE_TEXT)) {
+		if (isDataType(dataType, TYPE_TEXT)) {
 			delete (TypeText *) value;
+			value = nullptr;
 			return self;
 		}
-		if (isDataType(type, TYPE_BYTE)) {
+		if (isDataType(dataType, TYPE_BYTE)) {
 			delete[] (TypeByte *) value;
+			value = nullptr;
 			return self;
 		}
-		if (isDataType(type, TYPE_INT)) {
+		if (isDataType(dataType, TYPE_INT)) {
 			delete[] (TypeInt *) value;
+			value = nullptr;
 			return self;
 		}
-		if (isDataType(type, TYPE_REAL)) {
+		if (isDataType(dataType, TYPE_REAL)) {
 			delete[] (TypeReal *) value;
+			value = nullptr;
 			return self;
 		}
 		throw TypeError();
@@ -63,20 +84,20 @@ namespace db {
 		hasVal = false;
 		if (value == nullptr) { return self; }
 
-		const auto &count = getTypeCount(type);
-		if (isDataType(type, TYPE_TEXT)) {
+		const auto &count = getTypeCount(dataType);
+		if (isDataType(dataType, TYPE_TEXT)) {
 			(*(TypeText *) value).clear();
 			return self;
 		}
-		if (isDataType(type, TYPE_BYTE)) {
+		if (isDataType(dataType, TYPE_BYTE)) {
 			std::fill_n((TypeByte *) value, count, (TypeByte) 0);
 			return self;
 		}
-		if (isDataType(type, TYPE_INT)) {
+		if (isDataType(dataType, TYPE_INT)) {
 			std::fill_n((TypeInt *) value, count, (TypeInt) 0);
 			return self;
 		}
-		if (isDataType(type, TYPE_REAL)) {
+		if (isDataType(dataType, TYPE_REAL)) {
 			std::fill_n((TypeReal *) value, count, (TypeReal) 0);
 			return self;
 		}
@@ -92,14 +113,14 @@ namespace db {
 	}
 
 	TypeSize DataValue::getCount() const {
-		return getTypeCount(type);
+		return getTypeCount(dataType);
 	}
 
 	TypeSize DataValue::getSize() const {
-		if (isDataType(type, TYPE_TEXT)) {
+		if (isDataType(dataType, TYPE_TEXT)) {
 			return sizeof(TypeSize) + sizeof(TypeByte) * (*(TypeText *) value).size();
 		}
-		return getTypeSize(type);
+		return getTypeSize(dataType);
 	}
 
 	const void *DataValue::getValue() const {
@@ -109,9 +130,9 @@ namespace db {
 	const TypeByte *DataValue::getByte(const size_t pos) const {
 		if (value == nullptr)
 			throw std::logic_error("value not init");
-		if (!isDataType(type, TYPE_BYTE))
+		if (!isDataType(dataType, TYPE_BYTE))
 			throw TypeError(TypeError::MSG_MISMATCH);
-		if (pos >= getTypeCount(type))
+		if (pos >= getTypeCount(dataType))
 			throw std::out_of_range("pos");
 		return ((TypeByte *) value) + pos;
 	}
@@ -119,9 +140,9 @@ namespace db {
 	const TypeInt *DataValue::getInt(const size_t pos) const {
 		if (value == nullptr)
 			throw std::logic_error("value not init");
-		if (!isDataType(type, TYPE_INT))
+		if (!isDataType(dataType, TYPE_INT))
 			throw TypeError(TypeError::MSG_MISMATCH);
-		if (pos >= getTypeCount(type))
+		if (pos >= getTypeCount(dataType))
 			throw std::out_of_range("pos");
 		return ((TypeInt *) value) + pos;
 	}
@@ -129,9 +150,9 @@ namespace db {
 	const TypeReal *DataValue::getReal(const size_t pos) const {
 		if (value == nullptr)
 			throw std::logic_error("value not init");
-		if (!isDataType(type, TYPE_REAL))
+		if (!isDataType(dataType, TYPE_REAL))
 			throw TypeError(TypeError::MSG_MISMATCH);
-		if (pos >= getTypeCount(type))
+		if (pos >= getTypeCount(dataType))
 			throw std::out_of_range("pos");
 		return ((TypeReal *) value) + pos;
 	}
@@ -139,33 +160,35 @@ namespace db {
 	const TypeText *DataValue::getText() const {
 		if (value == nullptr)
 			throw std::logic_error("value not init");
-		if (!isDataType(type, TYPE_TEXT))
+		if (!isDataType(dataType, TYPE_TEXT))
 			throw TypeError(TypeError::MSG_MISMATCH);
 		return (TypeText *) value;
 	}
 
 	DataValue &DataValue::setValue(const void *source, const DataType &typ, const size_t count) {
-		if (!isDataType(type, typ))
+		if (!typeChange && !isDataType(dataType, typ))
 			throw TypeError(TypeError::MSG_MISMATCH);
-		allocSpace();
-		clear();
-		const auto &typcount = getTypeCount(type);
-		const auto &cnt = typcount < count ? typcount : count;
+		type(typ); //REMINDER: may change the holding value type
+		allocSpace(); //FIXME: unnecessary
+		clear(); //REMINDER: if not above happened make sure to clear all previous data
+
+		const auto &typecount = getTypeCount(dataType);
+		const auto &cnt = typecount < count ? typecount : count;
 
 		hasVal = true;
-		if (isDataType(type, TYPE_TEXT)) {
+		if (isDataType(dataType, TYPE_TEXT)) {
 			*(TypeText *) value = *(TypeText *) source;
 			return self;
 		}
-		if (isDataType(type, TYPE_BYTE)) {
+		if (isDataType(dataType, TYPE_BYTE)) {
 			memcpy(value, source, sizeof(TypeByte) * cnt);
 			return self;
 		}
-		if (isDataType(type, TYPE_INT)) {
+		if (isDataType(dataType, TYPE_INT)) {
 			memcpy(value, source, sizeof(TypeInt) * cnt);
 			return self;
 		}
-		if (isDataType(type, TYPE_REAL)) {
+		if (isDataType(dataType, TYPE_REAL)) {
 			memcpy(value, source, sizeof(TypeReal) * cnt);
 			return self;
 		}
@@ -175,7 +198,7 @@ namespace db {
 
 
 	DataValue &DataValue::setValue(const void *val, const size_t count) {
-		return setValue(val, type, count);
+		return setValue(val, dataType, count);
 	}
 
 	DataValue &DataValue::setValueByte(const TypeByte *val, const size_t count) {
@@ -222,21 +245,21 @@ namespace db {
 		if (pl == nullptr) return pr == nullptr ? 0 : -1;
 		if (pr == nullptr) return 1;
 
-		if (isDataType(type, TYPE_TEXT)) {
+		if (isDataType(dataType, TYPE_TEXT)) {
 			const auto &vl = *(TypeText *) pl, &vr = *(TypeText *) pr;
 			return vl.compare(vr);
 		}
-		if (isDataType(type, TYPE_BYTE)) {
+		if (isDataType(dataType, TYPE_BYTE)) {
 			// TODO: check arrays
 			const auto &l = *(TypeText *) pl, &r = *(TypeText *) pr;
 			return l.compare(r);
 		}
-		if (isDataType(type, TYPE_INT)) {
+		if (isDataType(dataType, TYPE_INT)) {
 			// TODO: check arrays
 			const auto &l = *(TypeInt *) pl, &r = *(TypeInt *) pr;
 			return l - r;
 		}
-		if (isDataType(type, TYPE_REAL)) {
+		if (isDataType(dataType, TYPE_REAL)) {
 			// TODO: check arrays
 			const auto &l = *(TypeReal *) pl, &r = *(TypeReal *) pr;
 			return l > r ? 1 : l < r ? -1 : 0;

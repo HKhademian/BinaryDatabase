@@ -13,11 +13,13 @@ namespace db {
 		public:
 			size_t start = 0, end = 0;
 
-			explicit Range(const size_t s, const size_t e) : start(s), end(e) {}
+			Range() = default;
 
 			Range(const Range &range) = default;
 
-			Range() = default;
+			explicit Range(const size_t s, const size_t e) : start(s), end(e) {}
+
+			explicit Range(const std::string &s) : Range(0, s.size() - 1) {}
 
 			Range operator+(const Range &rhs) const;
 		};
@@ -32,10 +34,10 @@ namespace db {
 			const char start, end;
 
 			explicit Ranger(const char s, const char e)
-					: start(s), end(e), dual(s == e), none(s == 0 || e == 0) {}
+				: start(s), end(e), dual(s == e), none(s == 0 || e == 0) {}
 
 			explicit Ranger(const char c)
-					: Ranger(c, c) {}
+				: Ranger(c, c) {}
 		};
 
 

@@ -1,5 +1,5 @@
-#include "utils.h"
 #include "../utils.h"
+#include "utils.h"
 
 namespace db {
 	namespace ctx {
@@ -38,15 +38,6 @@ namespace db {
 			return *ptable;
 		}
 
-		ColumnInfo &getColumn(Context &context, TableInfo &table, const std::string &cmd, Range range) {
-			const auto &columnName = parseColName(cmd, range);
-			const auto &columnPos = table.columnPos(columnName);
-			if (columnPos < 0) {
-				throw std::invalid_argument("column does not exists");
-			}
-			return table.columns[columnPos];
-		}
-
 		const ColumnInfo &getColumn(Context &context, const TableInfo &table, const std::string &cmd, Range range) {
 			const auto &columnName = parseColName(cmd, range);
 			const auto &columnPos = table.columnPos(columnName);
@@ -57,7 +48,7 @@ namespace db {
 		}
 
 		DataValue &parseValue(Context &context, DataValue &value, const std::string &cmd, Range range) {
-			const auto &type = value.type;
+			const auto &type = value.type();
 
 			if (isDataType(type, TYPE_TEXT)) {
 				if (param2Text(cmd, range, false)) { // plain text found
@@ -124,20 +115,33 @@ namespace db {
 			return val;
 		}
 
-		DataType parseColTypeType(const std::string &param, size_t sepLoc) {
+		std::string parseTypeParamCol(const std::string &param, Range range) {
+			if (!param2Text(param, range, true)) {
+				throw std::invalid_argument("col name required");
+			}
+			const auto colName = paramSub(param, range);
+			if (!checkName(colName)) {
+				throw std::invalid_argument("illegal column name");
+			}
+			return colName;
+		}
+
+		DataType parseTypeParamType(const std::string &param, Range range) {
 			static const auto TYP_BYTE = "byte";
 			static const auto TYP_CHAR = "char";
 			static const auto TYP_INT = "int";
 			static const auto TYP_REAL = "real";
 			static const auto TYP_TEXT = "text";
 
+			Range typeRange(range);
 			TypeSize count = 1;
-			auto typeRange = Range(sepLoc + 1, param.size() - 1);
-			auto countRange = typeRange;
-			if (paramFindRange(param, Ranger::lst, countRange)) {
-				const auto countParam = paramSub(param, Range(countRange.start + 1, countRange.end - 1));
-				count = std::atoi(countParam.c_str()); // NOLINT(cert-err34-c)
-				typeRange.end = countRange.start - 1;
+			{
+				Range countRange(range);
+				if (paramFindRange(param, Ranger::lst, countRange)) {
+					const auto countParam = paramSub(param, Range(countRange.start + 1, countRange.end - 1));
+					count = std::atoi(countParam.c_str()); // NOLINT(cert-err34-c)
+					typeRange.end = countRange.start - 1;
+				}
 			}
 			const auto typeParam = paramSub(param, typeRange);
 
@@ -151,16 +155,13 @@ namespace db {
 				throw TypeError();
 		}
 
-		std::string parseColTypeName(const std::string &param, size_t sepLoc) {
-			Range nameRange = Range(0, sepLoc - 1);
-			if (!param2Text(param, nameRange, true)) {
-				throw std::invalid_argument("col name required");
-			}
-			const auto colName = paramSub(param, nameRange);
-			if (!checkName(colName)) {
-				throw std::invalid_argument("illegal column name");
-			}
-			return colName;
+		DataType parseColTypeType(const std::string &param, size_t sepLoc) {
+			return parseTypeParamType(param, Range(sepLoc + 1, param.size() - 1));
 		}
+
+		std::string parseColTypeName(const std::string &param, size_t sepLoc) {
+			return parseTypeParamCol(param, Range(0, sepLoc - 1));
+		}
+
 	}
 }
