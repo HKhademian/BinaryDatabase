@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include "ColumnInfo.h"
+#include "../utils.h"
 
 namespace db {
 	struct TableInfo {
@@ -14,6 +15,9 @@ namespace db {
 
 		explicit TableInfo(std::string nam) :
 			name(std::move(nam)) {}
+
+		bool operator==(const TableInfo &rhs) const;
+		bool operator<(const TableInfo &rhs) const;
 
 		friend std::ostream &operator<<(std::ostream &os, const TableInfo &data);
 
@@ -30,12 +34,15 @@ namespace db {
 		std::string getDataPath() const;
 
 		std::fstream &openDataStream(std::fstream &stream) const;
+
 		std::fstream openDataStream() const;
 
 		std::ifstream &openDataInputStream(std::ifstream &stream) const;
+
 		std::ifstream openDataInputStream() const;
 
 		std::ofstream &openDataOutputStream(std::ofstream &stream) const;
+
 		std::ofstream openDataOutputStream() const;
 	};
 }

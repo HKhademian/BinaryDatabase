@@ -121,4 +121,12 @@ namespace db {
 		return stream;
 	}
 
+	bool TableInfo::operator==(const TableInfo &rhs) const {
+		return &rhs == this || self.name == rhs.name;
+	}
+
+	bool TableInfo::operator<(const TableInfo &rhs) const {
+		return &rhs != this && self.name < rhs.name;
+	}
+
 }

@@ -68,4 +68,16 @@ namespace db {
 		return self;
 	}
 
+	bool RowInfo::operator==(const RowInfo &rhs) const {
+		return &rhs == this || (
+			self.table == rhs.table &&
+			self.offsetOnDisk == rhs.offsetOnDisk &&
+			self.sizeOnDisk == rhs.offsetOnDisk
+		);
+	}
+
+	bool RowInfo::operator<(const RowInfo &rhs) const {
+		return &rhs != this || self.offsetOnDisk < rhs.offsetOnDisk || self.table < rhs.table;
+	}
+
 }

@@ -1,57 +1,21 @@
 #include<string>
-#include "../../Data/DataTable.h"
+#include <set>
+#include "../../utils.h"
+#include "../../Data/Data.h"
 #include "../utils.h"
 #include "Eval.h"
 
 namespace db {
 	namespace ctx {
-		std::vector<DataRow> &join(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target);
-
-		std::vector<DataRow> &merge(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target);
-
-		std::vector<DataRow> &delta(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target);
-
-
-		std::vector<DataRow> &join(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target) {
-			if (&result != &source) {
-				result = std::vector<DataRow>(source);
-				//result.insert(result.end(), source.begin(), source.end());
-			}
-			return delta(result, source, target);
-		}
-
-		std::vector<DataRow> &merge(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target) {
-			for (const auto &elt:target) {
-				bool exists = false;
-				for (const auto &els : source) {
-					if (elt.unique() == els.unique()) {
-						exists = true;
-						break;
-					}
-				}
-				if (exists) {
-					result.push_back(elt);
+		int indexOfDataRow(std::vector<DataRow> &rows, DataRow &target) {
+			for (int i = 0; i < rows.size(); i++) {
+				//if (rows[i] == target) {
+				if (rows[i].unique() == target.unique()) {
+					return i;
 				}
 			}
-			return result;
+			return -1;
 		}
-
-		std::vector<DataRow> &delta(std::vector<DataRow> &result, const std::vector<DataRow> &source, const std::vector<DataRow> &target) {
-			for (const auto &els : source) {
-				bool exists = false;
-				for (const auto &elt:target) {
-					if (elt.unique() == els.unique()) {
-						exists = true;
-						break;
-					}
-				}
-				if (!exists) {
-					result.push_back(els);
-				}
-			}
-			return result;
-		}
-
 
 		/// Select(tableName, [columns], query)
 		Eval (evalSelect) {
@@ -64,8 +28,7 @@ namespace db {
 			const auto &table = *ptable;
 
 			context.setTable(ptable);
-			// TODO: check previous rows
-			context.setRows(loadRows(table));
+			context.setRows(loadRows(table)); // TODO: check previous rows
 
 			Range columnsRange;
 			Range queryRange;
@@ -74,7 +37,7 @@ namespace db {
 				Range range(vparams[1]);
 				if (isParamRange(cmd, Ranger::lst, range)) {
 					columnsRange = range;
-				} else {
+				} else  {
 					queryRange = range;
 				}
 			}
@@ -103,61 +66,81 @@ namespace db {
 			}
 
 			if (!queryRange.isEmpty()) { // has query
-				auto &res = eval(context, cmd, queryRange);
-				if (res.hasError()) {
-					return context.err("error in query"); // TODO: SelectResult
+				auto &queryContext = eval(context, cmd, queryRange);
+				if (queryContext.hasError()) {
+					return context.err("error in query");
 				}
-				context.setRows(res.getRows(false));
+				context.setRows(queryContext.getRows(false));
 			}
 
 			loadData(table, context.getCols(false), context.getRows(false));
-
 			return context.done();
 		}
 
+		/** NOTE:
+		 * first way is calculate each query result and join (same records on all queries) as final result
+		 * Faster Way is to implement and ability in queries is to CASCADE each query and pass its
+		 * result (rows) to following query and harvest the last query
+		 * here I implement second way as it is more preferment and faster
+		 */
 		Eval (evalAnd) {
 			if (vparams.size() < 2) {
 				throw std::invalid_argument("illegal param count (at least 2)");
 			}
 			const auto &table = *(context.getpTable() ?: throw std::invalid_argument("query outside of Select"));
 
-//			// TODO: check previous rows
-//			const auto &rows = context.rows();
-//
-//			// TODO: IMPLEMENT
-//			Context *currentContext = &context;
-//			for (const auto &vparam: vparams) {
-//				//TODO: DELETE OLD
-//				currentContext = &eval(*currentContext, cmd, vparam);
-//				if (currentContext->hasError()) {
-//					return *currentContext;
-//				}
-//			  // TODO: delete res context
-//			}
+			auto *currentContext = new Context(&context);
+			for (const auto &vparam: vparams) {
+				auto *newContext = &eval(*currentContext, cmd, vparam);
+				// delete currentContext; // TODO: delete me
+				currentContext = newContext;
+				if (currentContext->hasError()) {
+					context.err(currentContext->res(false).message);
+					//delete currentContext; // TODO: delete me
+					return context;
+				}
+			}
 
-			return context.todo();
+			context.setRows(currentContext->getRows(false));
+			delete currentContext;
+			return context.done();
 		}
 
+		/** NOTE:
+		 * first way is calculate each query result and merge (every records on all queries) as final result
+		 * Faster Way is to implement and ability in queries is to CASCADE each query and pass its
+		 * result (rows) to following query and harvest the last query
+		 * here I implement second way as it is more preferment and faster
+		 */
 		Eval (evalOr) {
 			if (vparams.size() < 2) {
 				throw std::invalid_argument("illegal param count (at least 2)");
 			}
 			const auto &table = *(context.getpTable() ?: throw std::invalid_argument("query outside of Select"));
 
-			// TODO: check previous rows
-			const auto &rows = context.getRows();
-
-			std::vector<DataRow> result;
+			std::vector<DataRow> resultRows;
 			for (const auto &vparam: vparams) {
-				Context &res = eval(context, cmd, vparam);
-				if (res.hasError()) {
-					return context.err();
+				auto &queryContext = eval(context, cmd, vparam);
+				if (queryContext.hasError()) {
+					context.err(queryContext.res(false).message);
+					return context;
 				}
-				join(result, result, res.getRows(false));
-				// TODO: delete res context
+				auto &allRows = context.getRows();
+				auto &queryRows = queryContext.getRows(false);
+				std::vector<DataRow> nextRows;
+				for (auto &row: allRows) {
+					auto i = indexOfDataRow(queryRows, row);
+					if (i == -1) { // not in this query
+						nextRows.push_back(row);
+					} else {
+						// no need to check dups because already delete from previous steps
+						resultRows.push_back(row);
+					}
+				}
+				context.setRows(nextRows);
 			}
 
-			context.setRows(result);
+			context.setRows(resultRows);
 			return context.done();
 		}
 
@@ -167,20 +150,22 @@ namespace db {
 			}
 			const auto &table = *(context.getpTable() ?: throw std::invalid_argument("query outside of Select"));
 
-			// TODO: check previous rows
-			auto rows = loadRows(table);
-
-			Context &res = eval(context, cmd, vparams[0]);
-			if (res.hasError()) {
-				return context.err();
+			auto &queryContext = eval(context, cmd, vparams[0]);
+			if (queryContext.hasError()) {
+				return context.err(queryContext.res().message);
 			}
-			delta(rows, rows, res.getRows(false));
-			// TODO: delete res context
 
-			context.setRows(rows);
+			std::vector<DataRow> resultRows;
+			auto &allRows = context.getRows();
+			auto &queryRows = queryContext.getRows(false);
+			for (auto &row: allRows) {
+				auto i = indexOfDataRow(queryRows, row);
+				if (i == -1) { // not in this query
+					resultRows.push_back(row);
+				}
+			}
+			context.setRows(resultRows);
 			return context.done();
 		}
-
-
 	}
 }

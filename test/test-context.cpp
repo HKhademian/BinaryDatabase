@@ -74,6 +74,21 @@ void onDatabaseOpen(Context &context, int version) {
 		shell(context, "Select(students,eq(year,255))");
 		shell(context, "Select(students,eq(year,94))");
 
+		shell(context, "Select(students,neq(id,1374))");
+		shell(context, "Select(students,eq(id,1374))");
+
+		shell(context, "Select(students,neq(year,94))");
+		shell(context, "Select(students,eq(year,94))");
+
+		shell(context, "Select(students,and( neq(year,94) , neq(id,1374) ))");
+		shell(context, "Select(students,and( eq(year,94) , eq(id,1374) ))");
+
+		shell(context, "Select(students,or( neq(year,94) , neq(id,1374) ))");
+		shell(context, "Select(students,or( eq(year,94) , eq(id,1374) ))");
+
+		shell(context, "Select(students,not(and( neq(year,94) , neq(id,1374) )))");
+		shell(context, "Select(students,not(or( neq(year,94) , neq(id,1374) )))");
+
 		//shell(context, "Update(students,{year=99},eq(id, 97))");
 		//shell(context, "Update(students,{name=${text},grade=19.9},eq(id,${int}))", "Hossain Khademian (New)", 1374);
 	}

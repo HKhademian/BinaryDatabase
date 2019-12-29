@@ -18,6 +18,9 @@ namespace db {
 		TypeFlag flag = 0;
 
 	public:
+		bool operator==(const RowInfo& rhs) const;
+		bool operator<(const RowInfo& rhs) const;
+
 		bool isFree() const;
 
 		void setFree(bool isFree);
