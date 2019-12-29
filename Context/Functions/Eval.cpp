@@ -66,20 +66,22 @@ namespace db {
 			auto newContext = new Context(&context);
 			//TODO: track delete pointers
 			return snapEval(*newContext, cmd, range);
-			//Context subContext(context);
-			//return snapEval(subContext, cmd, range);
 		}
 
 		Context &snapEval(Context &context, const std::string &cmd, Range range) {
 			std::string func;
 
 			EvalP function = chooseFunction(cmd, range, func);
-			if (function) {
+			if (function != nullptr) {
 				const auto vparam = paramSplit(cmd, Ranger::func, range);
-				return (*function)(context, func, cmd, vparam);
+				try {
+					return (*function)(context, func, cmd, vparam);
+				} catch (std::exception &err) {
+					return context.err(err.what());
+				}
 			}
 
-			throw std::invalid_argument("function not found");
+			return context.err("function not found");
 		}
 
 	}

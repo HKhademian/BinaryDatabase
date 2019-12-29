@@ -29,12 +29,12 @@ bool shell(Context &context, const char *cmd, ...) {
 			cout << endl;
 			return true;
 		} else {
-			cerr << line << ": " << "ERR!" << endl;
+			cerr << line << ": " << "ERR! (" << result.res().message << ")" << endl;
 			return false;
 		}
 
 	} catch (exception &err) {
-		cerr << line << ": " << err.what() << endl;
+		cerr << line << ": unhandled error: " << err.what() << endl;
 	}
 	return false;
 }
