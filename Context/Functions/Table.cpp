@@ -20,7 +20,7 @@ namespace db {
 
 		Eval (evalCreateTable) {
 			const auto &tableName = parseTableName(cmd, vparams[0]);
-			auto &db = (DatabaseInfo &) context.db();
+			auto &db = (DatabaseInfo &) context.getDB();
 			if (db.tablePos(tableName) >= 0) {
 				throw std::invalid_argument("table already exists");
 			}
@@ -47,7 +47,7 @@ namespace db {
 			if (vparams.size() != 1) {
 				throw std::invalid_argument("illegal param count");
 			}
-			auto &db = (DatabaseInfo &) context.db();
+			auto &db = (DatabaseInfo &) context.getDB();
 			const auto tableName = parseTableName(cmd, vparams[0]);
 			const auto tablePos = db.tablePos(tableName);
 			if (tablePos < 0) {

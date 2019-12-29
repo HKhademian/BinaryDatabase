@@ -1,23 +1,28 @@
+#include<cstdarg>
 #include <iostream>
 #include <cstdlib>
-#include <fstream>
 #include "../Database.h"
 
 using namespace std;
 using namespace db;
 using namespace db::ctx;
 
-bool shell(Context &context, const string &cmd) {
+bool shell(Context &context, const char *cmd, ...) {
 	static size_t line = 0;
 	cout << flush;
 	cerr << flush;
+
 	try {
 		cout << ++line << ") " << cmd << endl;
-		auto &result = context.exec(cmd);
+
+		va_list vargs;
+		va_start(vargs, cmd);
+		auto &result = context.execArgs(cmd, vargs);
+		va_end(vargs);
 
 		if (!result.hasError()) {
 			cout << line << ": " << "DONE!";
-			const auto &rows = result.rows();
+			const auto &rows = result.getRows();
 			if (!rows.empty()) {
 				cout << " (" << rows.size() << ")";
 			}
@@ -36,7 +41,8 @@ bool shell(Context &context, const string &cmd) {
 
 void onDatabaseOpen(Context &context, int version) {
 	//context.exec("CreateTable(${s1}, ${ s2  } : int, 'col2': byte[${i3}], ${s4}:text) [ { 2, ${r5} }, '', $ { 2}  '', ${i4} ]", "myTable", "col2", 15, "firstname");
-//	context.exec("${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
+	//context.exec("${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
+//	shell(context, "${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
 
 //	context.exec("${2:text} ${1:text} ${3:int} ${text}", "myTable", "col2", 15, "firstname");
 
@@ -56,11 +62,22 @@ void onDatabaseOpen(Context &context, int version) {
 //	shell(context, "insert(mytbl2, {col1    = 10})");
 //
 	if (shell(context, "CREATETABLE(students, id:int, name:text, grade:real, year:byte)")) {
-		shell(context, "Insert     (students, {id=1, name='Hossain Khademian', grade=18.9,  year=97})");
-		shell(context, "Insert     (students, {id=2, name=`Saeed Khademian`,   grade=18.0,  year=94})");
-		shell(context, "Insert     (students, {id=3, name=\"Unknown\",         grade=-1.1,  year=95})");
-		shell(context, "Insert     (students, {id=3, name=Unknown,             grade=-1.1,  year=95})");
+//		shell(context, "Insert (students, {id=1}, {id=2}, {id=3})");
+
+		shell(context, "Insert (students, {id=${int}"     ", name=`Saeed Khademian`"  ", grade=18.0"     ", year=94})", 97);
+
+		shell(context, "Insert (students, {id=${ 2 :int }"", name=${ text }"          ", grade=-1.1"     ", year=95})", "Hossain", 1374);
+
+		loopIn(i, 5, 10) shell(context, "Insert     (students, {id=${int},name=${text},grade=${real},year=${byte}})", i, "TestRecord", 17.23, i * 2);
+	} else {
+		shell(context, "Select(students,[year])");
+		shell(context, "Select(students,eq(year,255))");
+		shell(context, "Select(students,eq(year,94))");
+
+		//shell(context, "Update(students,{year=99},eq(id, 97))");
+		//shell(context, "Update(students,{name=${text},grade=19.9},eq(id,${int}))", "Hossain Khademian (New)", 1374);
 	}
+
 //	shell(context, "Select     (students, eq(id, 2))");
 //	shell(context, "Select     (students, ge(id, 2))");
 //	shell(context, "Select     (students, le(id, 2))");

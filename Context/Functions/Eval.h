@@ -19,6 +19,7 @@ namespace db {
 
 		Eval (evalDeleteTable);
 
+
 		Eval (evalSelect);
 
 		Eval (evalAnd);
@@ -29,7 +30,10 @@ namespace db {
 
 		Eval (evalCompare);
 
+
 		Eval (evalInsert);
+
+		Eval (evalUpdate);
 
 		Eval (evalRemove);
 

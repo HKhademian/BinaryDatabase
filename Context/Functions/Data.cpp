@@ -7,15 +7,17 @@
 
 namespace db {
 	namespace ctx {
-		void setDataCell(Context &context, DataRow &row, const std::string &cmd, Range range) {
+		DataCell &setDataCell(Context &context, DataRow &row, const std::string &cmd, Range range) {
 			const auto parts = paramSplit(cmd, Ranger::non, range, '=');
 			if (parts.size() != 2) {
 				throw std::invalid_argument("illegal data set param => (%COL% = %VAL%)");
 			}
 			const auto &col = getColumn(context, row.table, cmd, parts[0]);
-			auto &cell = row.atColumn(col);
+			auto &cell = *row.atColumn(col);
 
-			parseValue(context, cell, cmd, parts[1]);
+			parseValue(context, (DataValue &) cell, cmd, parts[1]);
+
+			return cell;
 		}
 
 		Eval (evalInsert) {
@@ -24,7 +26,6 @@ namespace db {
 			}
 			const auto &table = getTable(context, cmd, vparams[0]);
 
-			size_t done = 0;
 			loopIn(i, 1, vparams.size()) {
 				auto setRange = vparams[i];
 				if (!isParamRange(cmd, Ranger::set, setRange)) {
@@ -33,28 +34,69 @@ namespace db {
 				const auto fields = paramSplit(cmd, Ranger::set, setRange);
 				DataRow row(table);
 				row.setFree(false);
+				std::vector<ColumnInfo> columns;
 				for (const auto &field : fields) {
-					setDataCell(context, row, cmd, field);
+					auto &cell = setDataCell(context, row, cmd, field);
+					columns.push_back(cell.column);
 				}
-				insertData(row);
-				done++;
+
+				auto stream = table.openDataOutputStream();
+				row.writeData(stream, columns);
+				stream.close();
 			}
 
 			return context.done();
 		}
 
+		Eval (evalUpdate) {
+			if (vparams.size() != 3) {
+				throw std::invalid_argument("provide exacly 3 params");
+			}
+			const auto &table = getTable(context, cmd, vparams[0]);
+
+			auto setRange = vparams[1];
+			if (!isParamRange(cmd, Ranger::set, setRange)) {
+				throw std::invalid_argument("illegal param data set => { ... }");
+			}
+			const auto fields = paramSplit(cmd, Ranger::set, setRange);
+			if (fields.empty()) {
+				throw std::invalid_argument("set something");
+			}
+
+			context.setTable(&table);
+			context.setRows(loadRows(table));
+
+			auto &query = eval(context, cmd, vparams[2]);
+			if (query.hasError()) {
+				return context.err("error in query");
+			}
+
+			auto &rows = query.getRows(false);
+			std::vector<ColumnInfo> columns;
+			for (auto row :rows) {
+				for (const auto &field : fields) {
+					auto &cell = setDataCell(context, row, cmd, field);
+					columns.push_back(cell.column);
+				}
+			}
+			updateDataRows(table, columns, rows);
+
+			return context.done();
+		}
+
 		Eval (evalRemove) {
-			if (vparams.size() != 1) {
-				throw std::invalid_argument("illegal param count");
+			if (vparams.size() != 2) {
+				throw std::invalid_argument("illegal param count (exactly 2)");
 			}
-			const auto &tableName = parseTableName(cmd, vparams[0]);
-			auto &db = (DatabaseInfo&) context.db();
-			const auto tablePos = db.tablePos(tableName);
-			if (tablePos < 0) {
-				throw std::invalid_argument("table does not exists");
+			const auto &table = getTable(context, cmd, vparams[0]);
+
+			auto &query = eval(context, cmd, vparams[1]);
+			if (query.hasError()) {
+				return context.err("error in query");
 			}
-			db.tables.erase(db.tables.begin() + tablePos);
-			context.saveDatabaseInfo();
+
+			removeDataRows(table, (std::vector<RowInfo> &) query.getRows());
+
 			return context.done();
 		}
 

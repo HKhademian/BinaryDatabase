@@ -1,12 +1,12 @@
 #include<string>
 #include "../../utils.h"
-#include "../../Data/DataTable.h"
+#include "../../Data/Data.h"
 #include "../utils.h"
 #include "Eval.h"
 
 namespace db {
 	namespace ctx {
-		int cmpEQ(const DataValue &lhs, const DataValue &rhs) { return lhs == rhs;/*lhs.compare(rhs) == 0;*/ }
+		int cmpEQ(const DataValue &lhs, const DataValue &rhs) { return lhs.compare(rhs) == 0; }
 
 		int cmpNE(const DataValue &lhs, const DataValue &rhs) { return lhs.compare(rhs) != 0; }
 
@@ -30,29 +30,27 @@ namespace db {
 			if (vparams.size() != 2) {
 				throw std::invalid_argument("illegal param count");
 			}
-			const auto &table = *(context.ptbl() ?: throw std::invalid_argument("query outside of Select"));
+			const auto &table = *(context.getpTable() ?: throw std::invalid_argument("query outside of Select"));
 			const auto &column = getColumn(context, table, cmd, vparams[0]);
 			const auto &rhs = parseValue(context, column, cmd, vparams[1]);
-			auto &rows = (std::vector<DataRow> &) context.rows();
 
-			// TODO: check previous rows
-			{
-				std::vector<ColumnInfo> cols;
-				cols.push_back(column);
-				loadData(table, cols, rows);
-			}
+			auto &rows = context.getRows();
+
+			// load data for query column TODO: check previous rows
+			loadData(table, std::vector<ColumnInfo>{column}, rows);
 
 			std::vector<DataRow> result;
 			const int rowCount = rows.size();
 			loop(i, rowCount) {
 				const auto &row = rows[i];
-				const auto &lhs = row.atColumn(column);
+				if (row.isFree())continue;
+				const auto &lhs = *row.atColumn(column);
 				if (cmp(lhs, rhs)) {
 					result.push_back(rows[i]);
 				}
 			}
 
-			context.rows(result);
+			context.setRows(result);
 			return context.done();
 		}
 	}

@@ -10,6 +10,7 @@ namespace db {
 			static const std::string CMD_CREATE_TABLE = "CreateTable";
 			static const std::string CMD_DELETE_TABLE = "DeleteTable";
 			static const std::string CMD_INSERT = "Insert";
+			static const std::string CMD_UPDATE = "Update";
 			static const std::string CMD_REMOVE = "Remove";
 			static const std::string CMD_SELECT = "Select";
 			static const std::string CMD_AND = "And";
@@ -30,6 +31,9 @@ namespace db {
 
 				if (strcaseequal(func, CMD_INSERT)) {
 					return &evalInsert;
+				}
+				if (strcaseequal(func, CMD_UPDATE)) {
+					return &evalUpdate;
 				}
 				if (strcaseequal(func, CMD_REMOVE)) {
 					return &evalRemove;
@@ -58,9 +62,10 @@ namespace db {
 			return nullptr;
 		}
 
-		Context &eval(const Context &context, const std::string &cmd, Range range) {
+		Context &eval(Context &context, const std::string &cmd, Range range) {
+			auto newContext = new Context(&context);
 			//TODO: track delete pointers
-			return snapEval(*new Context(context), cmd, range);
+			return snapEval(*newContext, cmd, range);
 			//Context subContext(context);
 			//return snapEval(subContext, cmd, range);
 		}

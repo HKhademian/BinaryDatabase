@@ -53,44 +53,73 @@ namespace db {
 		}
 
 
+		/// Select(tableName, [columns], query)
 		Eval (evalSelect) {
 			if (vparams.empty() || vparams.size() > 3) {
 				throw std::invalid_argument("illegal param count");
 			}
-			const auto &db = context.db();
+			const auto &db = context.getDB();
 			const auto tableName = parseTableName(cmd, vparams[0]);
 			const auto ptable = db.table(tableName) ?: throw std::invalid_argument("table does not exists");
 			const auto &table = *ptable;
-			context.tbl(ptable);
 
+			context.setTable(ptable);
 			// TODO: check previous rows
-			context.rows(loadRows(table));
-			//const auto &rows = context.rows();
+			context.setRows(loadRows(table));
 
-			if (vparams.size() == 1) { // no query, return all available rows
-				return context.done();
+			Range columnsRange;
+			Range queryRange;
+
+			if (vparams.size() >= 2) {
+				Range range(vparams[1]);
+				if (isParamRange(cmd, Ranger::lst, range)) {
+					columnsRange = range;
+				} else {
+					queryRange = range;
+				}
 			}
 
-			const Range queryRange = vparams[vparams.size() - 1];
-			auto res = eval(context, cmd, queryRange);
-
-			if (res.hasError()) {
-				return context.err(); // TODO: SelectResult
+			if (vparams.size() == 3) { // list selected columns
+				Range range(vparams[2]);
+				if (columnsRange.isEmpty() && isParamRange(cmd, Ranger::lst, range)) {
+					columnsRange = range;
+				} else if (queryRange.isEmpty()) {
+					queryRange = range;
+				} else {
+					throw std::invalid_argument("illegal third param type");
+				}
 			}
 
-			if (vparams.size() == 1) { // no select and query
-				return context.done();
+			if (!columnsRange.isEmpty()) {
+				auto vcols = paramSplit(cmd, Ranger::lst, columnsRange);
+				std::vector<ColumnInfo> columns;
+				for (auto &colRange : vcols) {
+					auto &col = getColumn(context, table, cmd, colRange);
+					columns.push_back(col);
+				}
+				context.setCols(columns);
+			} else {
+				context.setCols(table.columns);
 			}
 
-			// TODO: implement
-			return context.todo();
+			if (!queryRange.isEmpty()) { // has query
+				auto &res = eval(context, cmd, queryRange);
+				if (res.hasError()) {
+					return context.err("error in query"); // TODO: SelectResult
+				}
+				context.setRows(res.getRows(false));
+			}
+
+			loadData(table, context.getCols(false), context.getRows(false));
+
+			return context.done();
 		}
 
 		Eval (evalAnd) {
 			if (vparams.size() < 2) {
 				throw std::invalid_argument("illegal param count (at least 2)");
 			}
-			const auto &table = *(context.ptbl() ?: throw std::invalid_argument("query outside of Select"));
+			const auto &table = *(context.getpTable() ?: throw std::invalid_argument("query outside of Select"));
 
 //			// TODO: check previous rows
 //			const auto &rows = context.rows();
@@ -113,10 +142,10 @@ namespace db {
 			if (vparams.size() < 2) {
 				throw std::invalid_argument("illegal param count (at least 2)");
 			}
-			const auto &table = *(context.ptbl() ?: throw std::invalid_argument("query outside of Select"));
+			const auto &table = *(context.getpTable() ?: throw std::invalid_argument("query outside of Select"));
 
 			// TODO: check previous rows
-			const auto &rows = context.rows();
+			const auto &rows = context.getRows();
 
 			std::vector<DataRow> result;
 			for (const auto &vparam: vparams) {
@@ -124,11 +153,11 @@ namespace db {
 				if (res.hasError()) {
 					return context.err();
 				}
-				join(result, result, res.rows(false));
+				join(result, result, res.getRows(false));
 				// TODO: delete res context
 			}
 
-			context.rows(result);
+			context.setRows(result);
 			return context.done();
 		}
 
@@ -136,7 +165,7 @@ namespace db {
 			if (vparams.size() != 1) {
 				throw std::invalid_argument("illegal param count (exactly 1)");
 			}
-			const auto &table = *(context.ptbl() ?: throw std::invalid_argument("query outside of Select"));
+			const auto &table = *(context.getpTable() ?: throw std::invalid_argument("query outside of Select"));
 
 			// TODO: check previous rows
 			auto rows = loadRows(table);
@@ -145,10 +174,10 @@ namespace db {
 			if (res.hasError()) {
 				return context.err();
 			}
-			delta(rows, rows, res.rows(false));
+			delta(rows, rows, res.getRows(false));
 			// TODO: delete res context
 
-			context.rows(rows);
+			context.setRows(rows);
 			return context.done();
 		}
 
