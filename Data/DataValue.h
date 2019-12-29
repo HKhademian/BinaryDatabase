@@ -2,6 +2,7 @@
 #define DATABASE_DATA_VALUE_H
 
 #include "../MetaInfo/DataType.h"
+#include "../MetaInfo/DataTypeIO.h"
 
 namespace db {
 	/// this DataValue can store any available data and data array
@@ -42,6 +43,10 @@ namespace db {
 
 		bool isInited() const;
 
+		bool isTypeVar() const;
+
+		bool isDataVar() const;
+
 		bool hasValue() const;
 
 		TypeSize getCount() const;
@@ -63,7 +68,7 @@ namespace db {
 
 		DataValue &setValue(const void *val, size_t count);
 
-		DataValue &setValue(const DataValue& from);
+		DataValue &setValue(const DataValue &from);
 
 
 		DataValue &setValueByte(const TypeByte *val, size_t count = 1);
@@ -86,6 +91,18 @@ namespace db {
 		DataValue &setValueText(const TypeText &val);
 
 		int compare(const DataValue &other) const;
+
+		bool isDataVariable() const;
+
+
+		std::ostream &write(std::ostream &stream) {
+			return writeData(stream, getValue(), dataType);
+		}
+
+		std::istream &read(std::istream &stream) {
+			hasVal = !!readData(stream, value, dataType);
+			return stream;
+		}
 	};
 }
 #endif

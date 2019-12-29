@@ -49,7 +49,6 @@ namespace db {
 			value = TypeText(len, '\0');
 			return readBin(is, &value[0], len);
 		}
-
 		const auto count = getTypeCount(type);
 		const size_t size =
 			isDataType(type, TYPE_BYTE) ? sizeof(TypeByte) :

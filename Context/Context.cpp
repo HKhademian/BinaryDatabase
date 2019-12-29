@@ -10,7 +10,8 @@
 
 namespace db {
 	namespace ctx {
-		Context::Context(const Context *parent) : parent(parent) {}
+		Context::Context(Context *parent)
+			: parent(parent) {}
 
 		Context::~Context() {
 			clear();
@@ -24,9 +25,7 @@ namespace db {
 
 		Context &Context::clear() {
 			arguments.clear();
-
 			columns.clear();
-
 			dataRows.clear();
 
 			result.type = Result::ERR;
@@ -120,16 +119,6 @@ namespace db {
 			clear();
 			parseCommandArgs(arguments, vargs, cmd);
 
-/*
-			// TODO: DELETE IT
-			for (auto &arg : arguments) {
-				std::cerr << "Arg#" << arg.index << std::endl;
-				for (const auto &argRange: arg.ranges) {
-					std::cerr << "    in [" << argRange.start << "," << argRange.end << "]=" << paramSub(cmd, argRange) << std::endl;
-				}
-			}
-			return self;
-*/
 			return snapEval(*this, cmd, Range(0, cmd.size() - 1));
 		}
 
@@ -170,59 +159,59 @@ namespace db {
 		}
 
 
-		const std::vector<ColumnInfo> &Context::cols(bool include) const {
+		std::vector<ColumnInfo> &Context::getCols(bool include) {
 			return
-				include && columns.empty() && parent != nullptr ?
-				parent->cols(include) :
+				!include || !columns.empty() ? columns :
+				parent != nullptr ? parent->getCols(include) :
 				columns;
 		}
 
-		Context &Context::cols(std::vector<ColumnInfo> newcols) {
+		Context &Context::setCols(std::vector<ColumnInfo> newcols) {
 			self.columns = std::move(newcols);
 			return self;
 		}
 
 
-		const std::vector<DataRow> &Context::rows(bool include) const {
+		std::vector<DataRow> &Context::getRows(bool include) {
 			return
-				include && dataRows.empty() && parent != nullptr ?
-				parent->rows(include) :
+				!include || !dataRows.empty() ? dataRows :
+				parent != nullptr ? parent->getRows(include) :
 				dataRows;
 		}
 
-		Context &Context::rows(std::vector<DataRow> newrows) {
+		Context &Context::setRows(std::vector<DataRow> newrows) {
 			self.dataRows = std::move(newrows);
 			return self;
 		}
 
 
-		const DatabaseInfo *Context::pdb(bool include) const {
+		const DatabaseInfo *Context::getpDB(bool include) const {
 			return
-				database != nullptr ? database :
-				include && parent != nullptr ? parent->pdb(include) :
-				throw std::logic_error("database is not open");
+				!include || database != nullptr ? database :
+				parent != nullptr ? parent->getpDB(include) :
+				nullptr;
 		}
 
-		const DatabaseInfo &Context::db(bool include) const {
-			auto *pdatabase = pdb(include) ?: throw std::logic_error("database is not open");
+		const DatabaseInfo &Context::getDB(bool include) const {
+			auto *pdatabase = getpDB(include) ?: throw std::logic_error("database is not open");
 			return *pdatabase;
 		}
 
 
-		const TableInfo *Context::ptbl(bool include) const {
+		TableInfo *Context::getpTable(bool include) {
 			return
-				table != nullptr ? table :
-				include && parent != nullptr ? parent->ptbl(include) :
-				throw std::logic_error("table is not selected");
+				!include || table != nullptr ? table :
+				parent != nullptr ? parent->getpTable(include) :
+				nullptr;
 		}
 
-		const TableInfo &Context::tbl(bool include) const {
-			auto *ptable = ptbl(include) ?: throw std::logic_error("table is not selected");
+		TableInfo &Context::getTable(bool include) {
+			auto *ptable = getpTable(include) ?: throw std::logic_error("table is not selected");
 			return *ptable;
 		}
 
-		Context &Context::tbl(TableInfo *ptable) {
-			self.table = table;
+		Context &Context::setTable(const TableInfo *ptable) {
+			self.table = const_cast<TableInfo *>(ptable);
 			return self;
 		}
 	}

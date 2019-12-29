@@ -40,6 +40,9 @@ namespace db {
 	TypeSize getTypeSize(const DataType &type);
 
 	bool isDataType(const DataType &type, const DataType &target);
+
+	bool isDataTypeVar(const DataType &type);
+
 }
 
 #endif

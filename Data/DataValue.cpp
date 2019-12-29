@@ -10,6 +10,7 @@ namespace db {
 	DataValue::DataValue(const DataType &dataType, bool typeChange)
 		: dataType(dataType), typeChange(typeChange) {
 		allocSpace();
+		clear(); // fill with zero
 	}
 
 	DataValue::DataValue(const DataValue &other)
@@ -108,6 +109,14 @@ namespace db {
 		return value != nullptr;
 	}
 
+	bool DataValue::isTypeVar() const {
+		return isDataTypeVar(dataType);
+	}
+
+	bool DataValue::isDataVar() const {
+		return !hasVal && isDataTypeVar(dataType);
+	}
+
 	bool DataValue::hasValue() const {
 		return hasVal;
 	}
@@ -117,6 +126,9 @@ namespace db {
 	}
 
 	TypeSize DataValue::getSize() const {
+		if (isDataVar()) {
+			return -1;
+		}
 		if (isDataType(dataType, TYPE_TEXT)) {
 			return sizeof(TypeSize) + sizeof(TypeByte) * (*(TypeText *) value).size();
 		}
@@ -241,32 +253,44 @@ namespace db {
 	}
 
 	int DataValue::compare(const DataValue &other) const {
-		if (&other == this) return 0; // reference compare
-		if (&other == nullptr) return 1; // reference compare null safety
+		if (&other == this)
+			return 0; // reference compare
+		if (&other == nullptr)
+			return 1; // reference compare null safety
 
-		const auto *pl = self.getValue();
-		const auto *pr = other.getValue();
-		if (pl == nullptr) return pr == nullptr ? 0 : -1;
-		if (pr == nullptr) return 1;
+		const auto *pl = !self.hasVal ? nullptr : self.getValue();
+		const auto *pr = !other.hasVal ? nullptr : other.getValue();
+		if (pl == nullptr)
+			return pr == nullptr ? 0 : -1;
+		if (pr == nullptr)
+			return 1;
 
-		if (isDataType(dataType, TYPE_TEXT)) {
-			const auto &vl = *(TypeText *) pl, &vr = *(TypeText *) pr;
-			return vl.compare(vr);
+		if (isDataType(self.dataType, TYPE_TEXT)) {
+			if (isDataType(other.dataType, TYPE_TEXT)) {
+				const auto &l = *(TypeText *) pl, &r = *(TypeText *) pr;
+				return l.compare(r);
+			}
 		}
-		if (isDataType(dataType, TYPE_BYTE)) {
-			// TODO: check arrays
-			const auto &l = *(TypeText *) pl, &r = *(TypeText *) pr;
-			return l.compare(r);
+		if (isDataType(self.dataType, TYPE_BYTE)) {
+			if (isDataType(other.dataType, TYPE_BYTE)) {
+				// TODO: check arrays
+				const auto &l = *(TypeByte *) pl, &r = *(TypeByte *) pr;
+				return l > r ? 1 : l < r ? -1 : 0;
+			}
 		}
-		if (isDataType(dataType, TYPE_INT)) {
-			// TODO: check arrays
-			const auto &l = *(TypeInt *) pl, &r = *(TypeInt *) pr;
-			return l - r;
+		if (isDataType(self.dataType, TYPE_INT)) {
+			if (isDataType(other.dataType, TYPE_INT)) {
+				// TODO: check arrays
+				const auto &l = *(TypeInt *) pl, &r = *(TypeInt *) pr;
+				return l > r ? 1 : l < r ? -1 : 0;
+			}
 		}
-		if (isDataType(dataType, TYPE_REAL)) {
-			// TODO: check arrays
-			const auto &l = *(TypeReal *) pl, &r = *(TypeReal *) pr;
-			return l > r ? 1 : l < r ? -1 : 0;
+		if (isDataType(self.dataType, TYPE_REAL)) {
+			if (isDataType(other.dataType, TYPE_REAL)) {
+				// TODO: check arrays
+				const auto &l = *(TypeReal *) pl, &r = *(TypeReal *) pr;
+				return l > r ? 1 : l < r ? -1 : 0;
+			}
 		}
 		throw TypeError();
 	}

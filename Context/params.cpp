@@ -67,8 +67,9 @@ namespace db {
 		}
 
 		bool paramFindRange(const std::string &str, const Ranger &ranger, Range &range) {
-			while (range.start <= range.end && str[range.start] != ranger.start)range.start++;
-			if (str[range.start] != ranger.start) {
+			Range paramRange(range);
+			while (paramRange.start <= paramRange.end && str[paramRange.start] != ranger.start)paramRange.start++;
+			if (str[paramRange.start] != ranger.start) {
 				return false;
 			}
 
@@ -77,10 +78,11 @@ namespace db {
 				(ranger.start == Ranger::str2.start) ||
 				(ranger.start == Ranger::str3.start);
 
-			loopRangeEQ(size_t, i, range.start + 1, range.end) {
+			loopRangeEQ(size_t, i, paramRange.start + 1, paramRange.end) {
 				const char ch = str[i];
 				if (ch == ranger.end) {
-					range.end = i;
+					paramRange.end = i;
+					range = paramRange;
 					return true;
 				}
 				if (inStr) {
@@ -88,7 +90,7 @@ namespace db {
 				}
 				for (const auto chk: {Ranger::str1, Ranger::str2, Ranger::str3, Ranger::lst, Ranger::set, Ranger::func}) {
 					if (ch == chk.start) {
-						Range chunk(i, range.end);
+						Range chunk(i, paramRange.end);
 						if (!paramFindRange(str, chk, chunk)) {
 							throw std::invalid_argument("bad range start");
 							return false;
@@ -146,6 +148,10 @@ namespace db {
 				this->start + rhs.start,
 				this->start + rhs.end
 			);
+		}
+
+		bool Range::isEmpty() const {
+			return end == -1 || start == -1 || end < start;
 		}
 	}
 }

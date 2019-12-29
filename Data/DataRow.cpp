@@ -1,177 +1,139 @@
 #include "DataCell.h"
 #include "DataRow.h"
+#include "../utils.h"
 
 namespace db {
-	void rowFlag(TypeFlag &flag, bool isFree) {
-		flag &= ~(1 << 0);//clear free flag
-		flag |= (isFree ? 0 : 1) << 0; // set free flag
+	DataRow::~DataRow() {
+		// TODO: delete
+		//for (auto *cell: cells) {
+		//	delete cell;
+		//}
+		cells.clear();
 	}
 
-	TypeFlag rowFlag(bool isFree) {
-		TypeFlag flag = 0;
-		rowFlag(flag, isFree);
-		return flag;
-	}
-
-	bool isRowFree(TypeFlag flag) {
-		return (flag & ((TypeFlag) 1 << 0)) == 0;
-	}
-
-	DataRow::DataRow(const TableInfo &info) : table(info) {
+	DataRow::DataRow(const TableInfo &table)
+		: RowInfo(table) {
 		size_t cellOffset = 0;
 		//add static size columns
 		for (const auto &col : table.columns) {
-			const auto size = col.getRowSize();
-			if (size <= 0 || size == -1) continue;
-			cells.insert(std::pair<std::string, DataCell *>(
-				col.name,
-				new DataCell(col, cellOffset)
-			));
-			cellOffset += size;
+			if (isDataTypeVar(col.type)) continue;
+			cells.push_back(new DataCell(col, cellOffset));
+			cellOffset += col.getRowSize();
 		}
 		//add variable size columns
 		for (const auto &col : table.columns) {
-			const auto size = col.getRowSize();
-			if (size > 0 && size != -1) continue;
-			cells.insert(std::pair<std::string, DataCell *>(
-				col.name,
-				new DataCell(col, cellOffset)
-			));
-			cellOffset = -1; // uint max means veriable
+			if (!isDataTypeVar(col.type)) continue;
+			cells.push_back(new DataCell(col, cellOffset));
+			cellOffset = -1;
 		}
 	}
 
-	std::ostream &operator<<(std::ostream &os, DataRow &self) {
-		if (isRowFree(self.flag)) { // free record
-			if (self.sizeOnDisk > 0 && self.sizeOnDisk != -1) { // has size
-				if (self.offset == -1) {
-					//TODO: maybe zero old data
-					// TODO: choose free records write variable size data len or not
-					os.seekp(std::ostream::end);
-					self.offset = os.tellp();
-				} else {
-					os.seekp(self.offset, std::ostream::beg);
-				}
-				writeFlag(os, self.flag);
-				writeSize(os, self.sizeOnDisk);
-			}
-			return os;
-		}
-
-		const auto rowSize = self.getRowSize();
-		if (self.sizeOnDisk == -1 || self.sizeOnDisk < rowSize) { // need new space
-			if (self.offset != -1) {// delete this record
-				writeFlag(os, rowFlag(true));
-			}
-			self.sizeOnDisk = 0;
-		}
-		if (self.sizeOnDisk == 0 || self.sizeOnDisk == -1) { // new allocation
-			// TODO: find some other available rows
-			os.seekp(0, std::ios::end);
-			self.offset = os.tellp();
-			self.sizeOnDisk = rowSize;
-		}
-
-		os.seekp(self.offset, std::ostream::beg);
-		writeFlag(os, self.flag);
-		writeSize(os, self.sizeOnDisk);
-
-		for (const auto &col : self.table.columns) { // first fixed types
-			auto &cell = *self.cells.at(col.name);
-			if (cell.size == 0 || cell.size == -1) continue;
-			os << *self.cells.at(col.name);
-		}
-
-		for (const auto &col : self.table.columns) { // then variant types
-			auto &cell = *self.cells.at(col.name);
-			if (cell.size != 0 && cell.size != -1) continue;
-			os << *self.cells.at(col.name);
-		}
-
-		return os;
-	}
-
-	std::istream &operator>>(std::istream &is, DataRow &row) {
-		row.readInfo(is);
-
-		if (isRowFree(row.flag)) {
-			return is;
-		}
-
-		for (const auto &col : row.table.columns) { // first fixed types
-			auto &cell = *row.cells.at(col.name);
-			if (cell.size == 0 || cell.size == -1) continue;
-			is >> *row.cells.at(col.name);
-		}
-
-		for (const auto &col : row.table.columns) { // then variant types
-			auto &cell = *row.cells.at(col.name);
-			if (cell.size != 0 && cell.size != -1) continue;
-			is >> *row.cells.at(col.name);
-		}
-
-		return is;
-	}
-
-	std::istream &DataRow::readInfo(std::istream &is) {
-		offset = is.tellg();
-		flag = readFlag(is);
-		sizeOnDisk = readSize(is);
-
-		size_t cellOffset = 0;
-		for (const auto &col : table.columns) { // first fixed types
-			auto &cell = *cells.at(col.name);
-			if (cell.size == 0 || cell.size == -1) continue;
-			cell.clear();
-			cell.offsetOnRow = cellOffset;
-			auto diskSize = cell.size;
-			cellOffset += diskSize;
-			is.seekg(diskSize, std::istream::cur);
-		}
-		for (const auto &col : table.columns) { // then variant types
-			auto &cell = *cells.at(col.name);
-			if (cell.size != 0 && cell.size != -1) continue;
-			cell.clear();
-			cell.offsetOnRow = cellOffset;
-			auto diskSize = readSize(is);
-			cellOffset += diskSize + sizeof(TypeSize);
-			is.seekg(diskSize, std::istream::cur);
-		}
-
-		return is;
-	}
-
-	std::istream &DataRow::readData(std::istream &is, const std::vector<ColumnInfo> &columns) {
-		for (auto &column:columns) {
-			auto &cell = atColumn(column);
-			is.seekg(offset + cell.offsetOnRow + sizeof(TypeFlag) + sizeof(TypeSize), std::istream::beg);
-			is >> cell;
-		}
-		return is;
-	}
+	DataRow::DataRow(const RowInfo &rowInfo)
+		: DataRow(rowInfo.table) {}
 
 	size_t DataRow::getRowSize() const {
 		size_t size = 0;
 		for (const auto &col : table.columns) {
-			size += cells.at(col.name)->getRowSize();
+			size += atColumn(col)->getRowSize();
 		}
 		return size;
 	}
 
-	DataCell &DataRow::atColumn(const ColumnInfo &column) const {
-		return *cells.at(column.name);
+	DataCell *DataRow::atColumn(const std::string &colName) const {
+		for (auto *cell:cells) {
+			if (cell->column.name == colName) {
+				return cell;
+			}
+		}
+		return nullptr;
 	}
 
-	bool DataRow::isFree() const {
-		return isRowFree(flag);
+	DataCell *DataRow::atColumn(const ColumnInfo &column) const {
+		return atColumn(column.name);
 	}
 
-	void DataRow::setFree(bool isFree) {
-		rowFlag(this->flag, isFree);
+	DataRow &DataRow::clear() {
+		for (auto &cell:cells) {
+			cell->clear();
+		}
+		return self;
 	}
 
-	size_t DataRow::unique() const {
-		return offset;
+
+	std::istream &DataRow::readData(std::istream &stream, const std::vector<ColumnInfo> &columns) {
+		readInfo(stream);
+		calculateCellsOffset();
+		if (offsetOnDisk == -1) return stream;
+		if (isFree()) {
+			for (auto &column:columns) {
+				auto &cell = *atColumn(column);
+				cell.clear();
+			}
+			return stream;
+		}
+		for (const auto &col : columns) {
+			auto &cell = *atColumn(col);
+			if (cell.offsetOnDisk == -1) continue; // skip ghost rows (even after each update we dont have its index, so leave it for safety)
+			cell.readData(stream);
+			if (cell.isTypeVar()) { // update rows offset after each variable row changed
+				calculateCellsOffset();
+			}
+		}
+		return stream;
+	}
+
+	std::ostream &DataRow::writeData(std::ostream &stream, const std::vector<ColumnInfo> &columns) {
+		const auto dataSize = getRowSize();
+		if (sizeOnDisk == -1) { // new row
+			offsetOnDisk = -1;
+			sizeOnDisk = dataSize;
+		} else if (sizeOnDisk < getRowSize()) { // required addition size
+			const auto free = isFree();
+			setFree(true);
+			writeInfo(stream);
+			offsetOnDisk = -1;
+			sizeOnDisk = dataSize;
+			setFree(free);
+		}
+		writeInfo(stream);
+		calculateCellsOffset();
+		if (offsetOnDisk == -1) return stream;
+		if (isFree()) { // free record
+			stream.seekp(offsetOnDisk + sizeof(TypeFlag) + sizeof(TypeSize) + sizeOnDisk, std::ostream::beg);
+			// TODO: maybe zero old data
+			// TODO: choose free records write variable size data len or not
+			return stream;
+		}
+		for (auto &column:columns) {
+			auto &cell = *atColumn(column);
+			if (cell.offsetOnDisk == -1) continue; // skip ghost rows (even after update we dont have its index, so leave it for safety)
+			cell.writeData(stream);
+		}
+		return stream;
+	}
+
+	DataRow &DataRow::calculateCellsOffset() {
+		size_t offset = offsetOnDisk + sizeof(TypeFlag) + sizeof(TypeSize);
+// TODO: recalculate
+//		//add static size columns
+//		for (const auto &col : table.columns) {
+//			if (isDataTypeVar(col.type)) continue;
+//			cells.push_back(new DataCell(col, cellOffset));
+//			cellOffset += col.getRowSize();
+//		}
+//		//add variable size columns
+//		for (const auto &col : table.columns) {
+//			if (!isDataTypeVar(col.type)) continue;
+//			cells.push_back(new DataCell(col, cellOffset));
+//			cellOffset = -1;
+//		}
+		for (auto *cell : cells) {
+			cell->offsetOnDisk = offset;
+			const auto size = cell->getSize();
+			//offset = cell->isDataVar() ? -1 : offset + size;
+			offset = offset + (cell->isDataVar() ? sizeof(TypeSize) : size); //never giveup mode
+		}
+		return self;
 	}
 
 }

@@ -1,31 +1,14 @@
 #include <iostream>
 #include "../MetaInfo/DataType.h"
 #include "DataCell.h"
+#include "DataRow.h"
 
 namespace db {
-	DataCell::DataCell(const ColumnInfo &column, const size_t offsetOnRow)
-		: DataValue(column.type, false), column(column), size(column.getRowSize()), offsetOnRow(offsetOnRow) {}
-
-	std::ostream &operator<<(std::ostream &os, const DataCell &cell) {
-		const auto &type = cell.column.type;
-		return writeData(os, cell.getValue(), type);
-	}
-
-	std::istream &operator>>(std::istream &is, DataCell &cell) {
-		if (isDataType(cell.type(), TYPE_TEXT)) {
-			return readData(is, (void *) cell.getValue(), cell.type());
-		}
-		if (isDataType(cell.type(), TYPE_BYTE)) {
-			return readData(is, (void *) cell.getValue(), cell.type());
-		}
-		if (isDataType(cell.type(), TYPE_INT)) {
-			return readData(is, (void *) cell.getValue(), cell.type());
-		}
-		if (isDataType(cell.type(), TYPE_REAL)) {
-			return readData(is, (void *) cell.getValue(), cell.type());
-		}
-		throw TypeError();
-	}
+	DataCell::DataCell(const ColumnInfo &column, size_t offsetOnDisk) :
+		DataValue(column.type, false),
+		column(column),
+		staticSize(column.getRowSize()),
+		offsetOnDisk(offsetOnDisk) {}
 
 	size_t DataCell::getRowSize() const {
 		if (isDataType(type(), TYPE_TEXT)) {
@@ -39,6 +22,25 @@ namespace db {
 	}
 
 	bool DataCell::hasOffset() {
-		return offsetOnRow != -1;
+		return offsetOnDisk != -1;
+	}
+
+	std::ostream &DataCell::seekp(std::ostream &stream) const {
+		return stream.seekp(offsetOnDisk, std::ostream::beg);
+	}
+
+	std::istream &DataCell::seekg(std::istream &stream) const {
+		return stream.seekg(offsetOnDisk, std::ostream::beg);
+	}
+
+	std::ostream &DataCell::writeData(std::ostream &stream) {
+		if (!hasValue()) return stream; // do not write no-value cells
+		seekp(stream);
+		return DataValue::write(stream);
+	}
+
+	std::istream &DataCell::readData(std::istream &stream) {
+		seekg(stream);
+		return DataValue::read(stream);
 	}
 }

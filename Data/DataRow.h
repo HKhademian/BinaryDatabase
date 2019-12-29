@@ -3,44 +3,38 @@
 
 #include <map>
 #include "../MetaInfo/TableInfo.h"
-#include "DataCell.h"
+#include "../MetaInfo/RowInfo.h"
 
 namespace db {
-	void rowFlag(TypeFlag &flag, bool free);
+	struct DataCell;
 
-	TypeFlag rowFlag(bool free);
-
-	bool isRowFree(TypeFlag flag);
-
-	class DataRow {
-	protected:
-		TypeFlag flag = rowFlag(false);
-		size_t sizeOnDisk = 0;
-		std::map<std::string, DataCell *> cells;
+	struct DataRow : public RowInfo {
+	private:
+		std::vector<DataCell *> cells;
 
 	public:
-		const TableInfo &table;
-		size_t offset = -1;
+		~DataRow();
 
-		explicit DataRow(const TableInfo &info);
+		explicit DataRow(const TableInfo &table);
+
+		explicit DataRow(const RowInfo &rowInfo);
 
 		size_t getRowSize() const;
 
-		DataCell &atColumn(const ColumnInfo &column) const;
+		/// clear all cells data
+		DataRow &clear();
 
-		friend std::istream &operator>>(std::istream &is, DataRow &row);
+		DataCell *atColumn(const std::string &colName) const;
 
-		friend std::ostream &operator<<(std::ostream &os, DataRow &row);
+		DataCell *atColumn(const ColumnInfo &column) const;
 
-		std::istream &readInfo(std::istream &is);
 
 		std::istream &readData(std::istream &is, const std::vector<ColumnInfo> &columns);
 
-		bool isFree() const;
+		std::ostream &writeData(std::ostream &stream, const std::vector<ColumnInfo> &columns);
 
-		void setFree(bool isFree);
-
-		size_t unique() const;
+	private:
+		DataRow &calculateCellsOffset();
 
 	};
 }

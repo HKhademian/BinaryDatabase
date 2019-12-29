@@ -31,7 +31,7 @@ namespace db {
 
 		const TableInfo &getTable(Context &context, const std::string &cmd, Range range) {
 			const auto &tableName = parseTableName(cmd, range);
-			const auto ptable = context.db().table(tableName);
+			const auto ptable = context.getDB().table(tableName);
 			if (ptable == nullptr) {
 				throw std::invalid_argument("table does not exists");
 			}

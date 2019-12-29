@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "../utils.h"
 #include "utils.h"
 #include "Argument.h"
@@ -30,6 +31,11 @@ namespace db {
 						range.start++, range.end--;
 						parseArgRanges(args, vargs, cmd, range);
 					}
+					range.start = range.end + 1;
+					range.end = cmdRange.end;
+				} else if (paramFindRange(cmd, Ranger::func, range) || paramFindRange(cmd, Ranger::lst, range)) {
+					range.start++, range.end--;
+					parseArgRanges(args, vargs, cmd, range);
 					range.start = range.end + 1;
 					range.end = cmdRange.end;
 				} else {
@@ -86,7 +92,21 @@ namespace db {
 				}
 			}
 
-			for (auto &arg: args) {
+
+			// sort by index
+			//TODO: better sort
+			std::vector<int> indexes;
+			{
+				const auto cmp = [args](const int &lhs, const int &rhs) {
+					return args[lhs].index < args[rhs].index;
+				};
+				indexes.reserve(args.size());
+				for (const auto &arg:args) indexes.push_back(arg.index);
+				std::sort(indexes.begin(), indexes.end(), cmp);
+			}
+
+			for (const auto &idx: indexes) {
+				auto &arg = args[idx];
 				const auto &type = arg.type();
 
 				if (isDataType(type, TYPE_TEXT)) {
@@ -147,13 +167,7 @@ namespace db {
 
 		const Argument *getArg(const std::vector<Argument> &args, const std::string &cmd, Range range) {
 			paramTrim(cmd, range);
-			for (auto &arg : args) {
-				for (const auto &argRange: arg.ranges) {
-					if (argRange.start == range.start && argRange.end == range.end) {
-						return &arg;
-					}
-				}
-			}
+			if (cmd[range.start] == ARG_SIGN)range.start++;
 			return getArg(args, range);
 		}
 
@@ -162,6 +176,10 @@ namespace db {
 			if (arg == nullptr) return false;
 			value.setValue(*arg);
 			return true;
+		}
+
+		bool Argument::operator<(const Argument &rhs) const {
+			return self.index < rhs.index;
 		}
 	}
 }

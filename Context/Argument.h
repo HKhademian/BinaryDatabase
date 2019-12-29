@@ -16,6 +16,8 @@ namespace db {
 			Argument(TypeSize index, DataType type) : DataValue(type, true), index(index) {}
 
 			Argument() : Argument(TYPE_NONE, -1) {}
+
+			bool operator <(const Argument& rhs) const;
 		};
 
 		void parseCommandArgs(std::vector<Argument> &args, va_list &vargs, const std::string &cmd);

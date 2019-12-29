@@ -2,10 +2,8 @@
 #define DATABASE_CONTEXT_H
 
 #include<string>
-#include "../MetaInfo/DatabaseInfo.h"
-#include "../MetaInfo/TableInfo.h"
-#include "../MetaInfo/ColumnInfo.h"
-#include "../Data/DataRow.h"
+#include "../MetaInfo/MetaInfo.h"
+#include "../Data/Data.h"
 #include "params.h"
 #include "Result.h"
 #include "Argument.h"
@@ -14,7 +12,7 @@ namespace db {
 	namespace ctx {
 		class Context;
 
-		Context &eval(const Context &context, const std::string &cmd, Range range);
+		Context &eval(Context &context, const std::string &cmd, Range range);
 
 		Context &snapEval(Context &context, const std::string &cmd, Range range);
 
@@ -27,10 +25,10 @@ namespace db {
 		struct Context {
 			~Context();
 
-			explicit Context(const Context *parent = nullptr);
+			explicit Context(Context *parent = nullptr);
 
 		private:
-			const Context *parent = nullptr;
+			Context *parent = nullptr;
 			std::vector<Argument> arguments;
 			std::vector<ColumnInfo> columns;
 			std::vector<DataRow> dataRows;
@@ -53,26 +51,26 @@ namespace db {
 			Context &todo(const std::string &message = "");
 
 
-			const DatabaseInfo *pdb(bool include = true) const;
+			const DatabaseInfo *getpDB(bool include = true) const;
 
-			const DatabaseInfo &db(bool include = true) const;
-
-
-			const std::vector<ColumnInfo> &cols(bool include = true) const;
-
-			Context &cols(std::vector<ColumnInfo> newcols);
+			const DatabaseInfo &getDB(bool include = true) const;
 
 
-			const std::vector<DataRow> &rows(bool include = true) const;
+			std::vector<ColumnInfo> &getCols(bool include = true);
 
-			Context &rows(std::vector<DataRow> newrows);
+			Context &setCols(std::vector<ColumnInfo> newcols);
 
 
-			const TableInfo *ptbl(bool include = true) const;
+			std::vector<DataRow> &getRows(bool include = true);
 
-			const TableInfo &tbl(bool include = true) const;
+			Context &setRows(std::vector<DataRow> newrows);
 
-			Context &tbl(TableInfo *ptable);
+
+			TableInfo *getpTable(bool include = true);
+
+			TableInfo &getTable(bool include = true);
+
+			Context &setTable(const TableInfo *ptable);
 
 
 			Context &exec(const char *cmd, ...);
@@ -83,7 +81,7 @@ namespace db {
 			 * if there is varargs in another function pass it.
 			 * note: you must close it your self
 			 */
-			Context &Context::execArgs(const std::string &cmd, va_list &vargs);
+			Context &execArgs(const std::string &cmd, va_list &vargs);
 
 			Context &open(
 				const std::string &name, int version = 1,

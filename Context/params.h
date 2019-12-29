@@ -11,7 +11,7 @@ namespace db {
 //		typedef std::pair<size_t, size_t> Range;
 		class Range {
 		public:
-			size_t start = 0, end = 0;
+			size_t start = 0, end = -1;
 
 			Range() = default;
 
@@ -22,6 +22,8 @@ namespace db {
 			explicit Range(const std::string &s) : Range(0, s.size() - 1) {}
 
 			Range operator+(const Range &rhs) const;
+
+			bool isEmpty() const;
 		};
 
 		class Ranger {

@@ -17,6 +17,9 @@ namespace db {
 	}
 
 	TypeSize ColumnInfo::getRowSize() const {
+		if (isDataType(type, TYPE_TEXT)) {
+			return sizeof(TypeSize);
+		}
 		return getTypeSize(type) * getTypeCount(type);
 	}
 

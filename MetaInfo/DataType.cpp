@@ -23,4 +23,8 @@ namespace db {
 	bool isDataType(const DataType &type, const DataType &target) {
 		return (type & TYPE_MASK) == (target & TYPE_MASK);
 	}
+
+	bool isDataTypeVar(const DataType &type) {
+		return isDataType(type, TYPE_TEXT);
+	}
 }

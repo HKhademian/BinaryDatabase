@@ -5,6 +5,11 @@
 #include "../utils.h"
 
 namespace db {
+	std::string TableInfo::getDataPath() const {
+		return "./tbl-" + name + ".dat";
+	}
+
+
 	std::ostream &operator<<(std::ostream &os, const TableInfo &data) {
 		writeText(os, data.name);
 
@@ -68,4 +73,52 @@ namespace db {
 		}
 		return nullptr;
 	}
+
+	std::fstream &TableInfo::openDataStream(std::fstream &stream) const {
+		stream.open(getDataPath(), std::ios::out | std::ios::binary); // create if not exists
+		stream.close();
+		stream.open(getDataPath(), std::ios::in | std::ios::out | std::ios::binary); // open for rw
+		stream.seekg(0, std::ifstream::beg);
+		stream.seekp(0, std::ifstream::beg);
+		return stream;
+	}
+
+	std::fstream TableInfo::openDataStream() const {
+		std::fstream stream;
+		openDataStream(stream);
+		return stream;
+	}
+
+	std::ifstream &TableInfo::openDataInputStream(std::ifstream &stream) const {
+		stream.open(getDataPath(), std::ios::in | std::ios::binary); // open if exists
+		if (!stream) {
+			stream.open(getDataPath(), std::ios::out | std::ios::binary); // create if not
+			stream.close();
+			stream.open(getDataPath(), std::ios::in | std::ios::binary);
+		}
+		stream.seekg(0, std::ifstream::beg);
+		return stream;
+	}
+
+	std::ifstream TableInfo::openDataInputStream() const {
+		std::ifstream stream;
+		openDataInputStream(stream);
+		return stream;
+	}
+
+	std::ofstream &TableInfo::openDataOutputStream(std::ofstream &stream) const {
+		stream.open(getDataPath(), std::ios::in | std::ios::out | std::ios::binary); // open if exists
+		if (!stream) {
+			stream.open(getDataPath(), std::ios::out | std::ios::binary); // create if not
+		}
+		stream.seekp(0, std::ifstream::beg);
+		return stream;
+	}
+
+	std::ofstream TableInfo::openDataOutputStream() const {
+		std::ofstream stream;
+		openDataOutputStream(stream);
+		return stream;
+	}
+
 }

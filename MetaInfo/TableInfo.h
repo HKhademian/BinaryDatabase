@@ -2,6 +2,7 @@
 #define DATABASE_TABLE_INFO_H
 
 #include <vector>
+#include <fstream>
 #include "ColumnInfo.h"
 
 namespace db {
@@ -26,9 +27,16 @@ namespace db {
 
 		const ColumnInfo *column(const std::string &columnName) const;
 
-		std::string getDataPath() const {
-			return "./tbl-" + name + ".dat";
-		}
+		std::string getDataPath() const;
+
+		std::fstream &openDataStream(std::fstream &stream) const;
+		std::fstream openDataStream() const;
+
+		std::ifstream &openDataInputStream(std::ifstream &stream) const;
+		std::ifstream openDataInputStream() const;
+
+		std::ofstream &openDataOutputStream(std::ofstream &stream) const;
+		std::ofstream openDataOutputStream() const;
 	};
 }
 #endif
