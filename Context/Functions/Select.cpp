@@ -37,7 +37,7 @@ namespace db {
 				Range range(vparams[1]);
 				if (isParamRange(cmd, Ranger::lst, range)) {
 					columnsRange = range;
-				} else  {
+				} else {
 					queryRange = range;
 				}
 			}
@@ -73,7 +73,7 @@ namespace db {
 				context.setRows(queryContext.getRows(false));
 			}
 
-			loadData(table, context.getCols(false), context.getRows(false));
+			loadData(context.getCols(false), context.getRows(false));
 			return context.done();
 		}
 

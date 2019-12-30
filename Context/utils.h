@@ -3,8 +3,8 @@
 
 #include <string>
 #include <stdexcept>
-#include "../MetaInfo/TableInfo.h"
-#include "../Data/DataValue.h"
+#include "../MetaInfo/MetaInfo.h"
+#include "../Data/Data.h"
 #include "params.h"
 #include "Context.h"
 

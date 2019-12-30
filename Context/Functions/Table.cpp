@@ -25,7 +25,7 @@ namespace db {
 				throw std::invalid_argument("table already exists");
 			}
 
-			TableInfo tableInfo(db, tableName);
+			TableInfo tableInfo(tableName);
 			loopIn(i, 1, vparams.size()) {
 				auto range = vparams[i];
 				const ColumnInfo columnInfo = createCol(cmd, range);
@@ -53,6 +53,8 @@ namespace db {
 			if (tablePos < 0) {
 				throw std::invalid_argument("tablePos does not exists");
 			}
+
+			std::vector<TableInfo> tables;
 			db.tables.erase(db.tables.begin() + tablePos);
 
 			//TODO: Remove Table data/index/... files

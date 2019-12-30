@@ -33,9 +33,10 @@ namespace db {
 
 		std::ostream &writeData(std::ostream &stream, const std::vector<ColumnInfo> &columns);
 
+		friend std::ostream &operator<<(std::ostream &stream, const DataRow &row);
+
 	private:
 		DataRow &calculateCellsOffset();
-
 	};
 }
 

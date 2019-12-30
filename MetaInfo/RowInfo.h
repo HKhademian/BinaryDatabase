@@ -34,6 +34,7 @@ namespace db {
 
 
 		std::istream &seekgEnd(std::istream &is);
+		std::ostream &seekpEnd(std::ostream &is);
 
 		std::istream &seekg(std::istream &is);
 

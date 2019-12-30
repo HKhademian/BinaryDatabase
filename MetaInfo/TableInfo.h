@@ -10,12 +10,11 @@ namespace db {
 	struct ColumnInfo;
 
 	struct TableInfo {
-		const DatabaseInfo &database;
 		std::string name = "";
 		std::vector<ColumnInfo> columns;
 
-		explicit TableInfo(const DatabaseInfo &database, std::string nam = "") :
-			database(database), name(std::move(nam)) {}
+		explicit TableInfo(std::string nam = "") :
+			name(std::move(nam)) {}
 
 		bool operator==(const TableInfo &rhs) const;
 

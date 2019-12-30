@@ -1,6 +1,6 @@
+#include "../utils.h"
 #include "DataCell.h"
 #include "DataRow.h"
-#include "../utils.h"
 
 namespace db {
 	DataRow::~DataRow() {
@@ -59,6 +59,19 @@ namespace db {
 		return self;
 	}
 
+	std::ostream &operator<<(std::ostream &stream, const DataRow &row) {
+		stream << row.table.name << "<";
+		bool first = true;
+		for (auto &column:row.table.columns) {
+			auto &cell = *row.atColumn(column);
+			if (!cell.hasValue()) continue; // skip non-value columns
+			if (!first) stream << ",";
+			first = false;
+			stream << column.name << "=(" << cell << ")";
+		}
+		stream << ">";
+		return stream;
+	}
 
 	std::istream &DataRow::readData(std::istream &stream, const std::vector<ColumnInfo> &columns) {
 		readInfo(stream);
@@ -84,32 +97,26 @@ namespace db {
 
 	std::ostream &DataRow::writeData(std::ostream &stream, const std::vector<ColumnInfo> &columns) {
 		const auto dataSize = getRowSize();
-		if (sizeOnDisk == -1) { // new row
-			offsetOnDisk = -1;
-			sizeOnDisk = dataSize;
-		} else if (sizeOnDisk < getRowSize()) { // required addition size
-			const auto free = isFree();
-			setFree(true);
-			writeInfo(stream);
-			offsetOnDisk = -1;
-			sizeOnDisk = dataSize;
-			setFree(free);
+		if (dataSize == 0 || sizeOnDisk == 0)
+			throw std::logic_error("this must not happened!");
+		if (sizeOnDisk == -1 || sizeOnDisk < getRowSize()) { // if new row OR required addition size
+			if (sizeOnDisk != -1 && offsetOnDisk != -1 && !isFree()) {  // first free currently allocated space
+				setFree(true);
+				writeInfo(stream);
+			}
+			offsetOnDisk = -1; // need new row space
+			sizeOnDisk = dataSize; // with dataSize space
 		}
 		writeInfo(stream);
+		if (offsetOnDisk == -1) return stream; // if it's not on the disk
+		if (isFree()) return seekpEnd(stream);
 		calculateCellsOffset();
-		if (offsetOnDisk == -1) return stream;
-		if (isFree()) { // free record
-			stream.seekp(offsetOnDisk + sizeof(TypeFlag) + sizeof(TypeSize) + sizeOnDisk, std::ostream::beg);
-			// TODO: maybe zero old data
-			// TODO: choose free records write variable size data len or not
-			return stream;
-		}
 		for (auto &column:columns) {
 			auto &cell = *atColumn(column);
 			if (cell.offsetOnDisk == -1) continue; // skip ghost rows (even after update we dont have its index, so leave it for safety)
 			cell.writeData(stream);
 		}
-		return stream;
+		return seekpEnd(stream);
 	}
 
 	DataRow &DataRow::calculateCellsOffset() {

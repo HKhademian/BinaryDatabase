@@ -79,7 +79,7 @@ namespace db {
 					columns.push_back(cell.column);
 				}
 			}
-			updateDataRows(table, columns, rows);
+			updateDataRows(columns, rows);
 
 			return context.done();
 		}
@@ -95,7 +95,7 @@ namespace db {
 				return context.err("error in query");
 			}
 
-			removeDataRows(table, (std::vector<RowInfo> &) query.getRows());
+			removeDataRows((std::vector<RowInfo> &) query.getRows());
 
 			return context.done();
 		}

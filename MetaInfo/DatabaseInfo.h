@@ -3,9 +3,10 @@
 
 #include <vector>
 #include <fstream>
-#include "TableInfo.h"
 
 namespace db {
+	struct TableInfo;
+
 	struct DatabaseInfo {
 		TypeText name = "";
 		TypeSize version = 1;

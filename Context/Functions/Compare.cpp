@@ -37,7 +37,7 @@ namespace db {
 			auto &rows = context.getRows();
 
 			// load data for query column TODO: check previous rows
-			loadData(table, std::vector<ColumnInfo>{column}, rows);
+			loadData(std::vector<ColumnInfo>{column}, rows);
 
 			std::vector<DataRow> result;
 			const int rowCount = rows.size();

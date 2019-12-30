@@ -29,6 +29,10 @@ namespace db {
 		return stream.seekg(offsetOnDisk + sizeof(TypeFlag) + sizeof(TypeSize) + sizeOnDisk, std::istream::beg);
 	}
 
+	std::ostream &RowInfo::seekpEnd(std::ostream &stream) {
+		return stream.seekp(offsetOnDisk + sizeof(TypeFlag) + sizeof(TypeSize) + sizeOnDisk, std::istream::beg);
+	}
+
 	std::istream &RowInfo::seekg(std::istream &stream) {
 		return stream.seekg(offsetOnDisk, std::istream::beg);
 	}
@@ -44,24 +48,29 @@ namespace db {
 		offsetOnDisk = stream.tellg();
 		flag = readFlag(stream);
 		sizeOnDisk = readSize(stream);
-		seekgEnd(stream);
-		return stream;
+		return seekgEnd(stream);
 	}
 
 	std::ostream &RowInfo::writeInfo(std::ostream &stream) {
+		bool isNewRow = false;
 		if (sizeOnDisk == -1) {
 			// return stream; // new row without any data
 			sizeOnDisk = DEFAULT_ROW_SIZE; // default row size
 		}
 		if (offsetOnDisk == -1) { // new row
+			// TODO: may find free rows instead
 			stream.seekp(0, std::ostream::end);
 			offsetOnDisk = stream.tellp();
+			isNewRow = true;
 		} else {
 			seekp(stream);
 		}
 		writeFlag(stream, flag);
 		writeSize(stream, sizeOnDisk);
-		return stream;
+		if (isNewRow || isFree()) { // write zero place holders
+			writeBin(stream, nullptr, sizeOnDisk);
+		}
+		return seekp(stream);
 	}
 
 	RowInfo &RowInfo::readInfo() {

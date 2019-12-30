@@ -7,7 +7,7 @@
 
 namespace db {
 	std::string TableInfo::getDataPath() const {
-		return "./tbl-" + self.database.name + "-" + self.name + ".dat";
+		return "./tbl-" + self.name + ".dat";
 	}
 
 	std::ostream &TableInfo::writeInfo(std::ostream &stream) const {
@@ -23,11 +23,11 @@ namespace db {
 	std::istream &TableInfo::readInfo(std::istream &stream) {
 		self.columns.clear();
 		readText(stream, self.name);
-		const size_t count = readSize(stream);
-		loop (i, count) {
-			auto col = ColumnInfo(); // auto el = new ColumnInfo();
-			col.readInfo(stream);
-			self.columns.push_back(col);
+		const size_t columnCount = readSize(stream);
+		loop (i, columnCount) {
+			auto col = new ColumnInfo;
+			col->readInfo(stream);
+			self.columns.push_back(*col);
 		}
 		return stream;
 	}
@@ -125,5 +125,15 @@ namespace db {
 	bool TableInfo::operator<(const TableInfo &rhs) const {
 		return &rhs != this && self.name < rhs.name;
 	}
+
+//	TableInfo &TableInfo::operator=(TableInfo &&other) {
+//		if (self.database.name == other.database.name) {
+//			self.name = other.name;
+//			self.columns = other.columns;
+//		} else {
+//			//TODO: maybe error or new element
+//		}
+//		return self;
+//	}
 
 }

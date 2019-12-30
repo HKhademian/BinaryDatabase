@@ -22,6 +22,8 @@ namespace db {
 
 		bool operator==(const DataValue &rhs) const;
 
+		friend std::ostream &operator<<(std::ostream &stream, const DataValue& val);
+
 	private:
 		DataType dataType = TYPE_NONE;
 		void *value = nullptr;

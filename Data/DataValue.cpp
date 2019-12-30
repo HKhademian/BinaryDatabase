@@ -22,6 +22,24 @@ namespace db {
 
 	bool DataValue::operator==(const DataValue &rhs) const { return self.compare(rhs) == 0; }
 
+	std::ostream &operator<<(std::ostream &stream, const DataValue &val) {
+		if (!val.hasVal) return stream << "NON";
+		if (val.value == nullptr) return stream << "NULL";
+		if (isDataType(val.dataType, TYPE_TEXT)) {
+			return stream << *(TypeText *) val.value;
+		}
+		if (isDataType(val.dataType, TYPE_BYTE)) {
+			return stream << (int) *(TypeByte *) val.value;
+		}
+		if (isDataType(val.dataType, TYPE_INT)) {
+			return stream << *(TypeInt *) val.value;
+		}
+		if (isDataType(val.dataType, TYPE_REAL)) {
+			return stream << *(TypeReal *) val.value;
+		}
+		throw TypeError();
+	}
+
 
 	DataType DataValue::type() const {
 		return dataType;

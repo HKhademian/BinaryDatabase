@@ -1,11 +1,11 @@
 #include <iostream>
 #include "../utils.h"
+#include "ColumnInfo.h"
 #include "TableInfo.h"
 #include "DataTypeIO.h"
 #include "DatabaseInfo.h"
 
 namespace db {
-
 	std::string DatabaseInfo::getInfoPath() const {
 		return "./db-" + self.name + ".dat";
 	}
@@ -34,7 +34,7 @@ namespace db {
 		readText(stream, self.name);
 		const TypeSize tableCount = readSize(stream);
 		loop (i, tableCount) {
-			auto table = TableInfo(self); //auto tablePos = *new TableInfo();
+			auto table = *new TableInfo;
 			table.readInfo(stream);
 			self.tables.push_back(table);
 		}

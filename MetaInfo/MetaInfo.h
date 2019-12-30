@@ -1,6 +1,6 @@
 #include "DataType.h"
 #include "DataTypeIO.h"
-#include "DatabaseInfo.h"
-#include "TableInfo.h"
 #include "ColumnInfo.h"
+#include "TableInfo.h"
+#include "DatabaseInfo.h"
 #include "RowInfo.h"

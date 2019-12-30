@@ -23,10 +23,10 @@ bool shell(Context &context, const char *cmd, ...) {
 		if (!result.hasError()) {
 			cout << line << ": " << "DONE!";
 			const auto &rows = result.getRows();
-			if (!rows.empty()) {
-				cout << " (" << rows.size() << ")";
+			cout << " (" << rows.size() << " Result Rows)" << endl;
+			for (auto &row : rows) {
+				cout << "\t" << row << endl;
 			}
-			cout << endl;
 			return true;
 		} else {
 			cerr << line << ": " << "ERR! (" << result.res().message << ")" << endl;
@@ -41,25 +41,25 @@ bool shell(Context &context, const char *cmd, ...) {
 
 void onDatabaseOpen(Context &context, int version) {
 	cout << "onDatabaseOpen(version:" << version << ")" << endl;
-//	context.exec("CreateTable(${s1}, ${ s2  } : int, 'col2': byte[${i3}], ${s4}:text) [ { 2, ${r5} }, '', $ { 2}  '', ${i4} ]", "myTable", "col2", 15, "firstname");
-//	context.exec("${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
-//	context.exec("${2:text} ${1:text} ${3:int} ${text}", "myTable", "col2", 15, "firstname");
-	shell(context, "${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
-
-	shell(context, "CreateTable(\"test1\", col1    : int   , 'col2' :    byte[15], `col3`:text)");
-	shell(context, "CreateTable(mytbl2, col1:int, c2:real[2], name:char[1])");
-	shell(context, "  deleteTable   (test1)");
-	shell(context, "CreateTable(\"test1\", col5    : int)");
-
-	shell(context, "select(\"test1\", col5    : int)");
-	shell(context, "eq(col5,2)");
-	shell(context, "select(  test1,   eq(col5,2)    )");
-
-	shell(context, "insert(\"test1\", col5    = int)");
-	shell(context, "insert(test1, {col5    : int})");
-	shell(context, "insert(test3, {col5    = int})");
-	shell(context, "insert(mytbl2, {col5    = int})");
-	shell(context, "insert(mytbl2, {col1    = 10})");
+////	context.exec("CreateTable(${s1}, ${ s2  } : int, 'col2': byte[${i3}], ${s4}:text) [ { 2, ${r5} }, '', $ { 2}  '', ${i4} ]", "myTable", "col2", 15, "firstname");
+////	context.exec("${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
+////	context.exec("${2:text} ${1:text} ${3:int} ${text}", "myTable", "col2", 15, "firstname");
+//	shell(context, "${text} ${text} ${int} ${text}", "myTable", "col2", 15, "firstname");
+//
+//	shell(context, "CreateTable(\"test1\", col1    : int   , 'col2' :    byte[15], `col3`:text)");
+//	shell(context, "CreateTable(mytbl2, col1:int, c2:real[2], name:char[1])");
+//	shell(context, "  deleteTable   (test1)");
+//	shell(context, "CreateTable(\"test1\", col5    : int)");
+//
+//	shell(context, "select(\"test1\", col5    : int)");
+//	shell(context, "eq(col5,2)");
+//	shell(context, "select(  test1,   eq(col5,2)    )");
+//
+//	shell(context, "insert(\"test1\", col5    = int)");
+//	shell(context, "insert(test1, {col5    : int})");
+//	shell(context, "insert(test3, {col5    = int})");
+//	shell(context, "insert(mytbl2, {col5    = int})");
+//	shell(context, "insert(mytbl2, {col1    = 10})");
 
 	if (shell(context, "CREATETABLE(students, id:int, name:text, grade:real, year:byte)")) {
 		shell(context, "Insert (students, {id=1}, {id=2}, {id=3})");
