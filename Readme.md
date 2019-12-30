@@ -10,6 +10,7 @@ This is a complete database library made for (Principal of Programming course in
 * at last its better to `close` the context, also `clean` context after you're done with its result
 
 ## Commands
+Note that all commands are **case-insensitive** you can use how case you want.
 1.  `Select(<TableName>, <cols>, <query>)`  OR `Select(<TableName>, <query>, <cols>)` 
     * select some `DataRow`s from table and read their requested columns that matched in requested Query
     * you can 
@@ -22,7 +23,7 @@ This is a complete database library made for (Principal of Programming course in
     * `GT` as greater-than, `GE` as greater-than-or-equals
     * `LT` as less-than, `LE` as less-than-or-equals
     * `NGT` is `LE` , `NGE` is `LT` , `NLT` is `GE` , `NLE` is `GT`
-    * `In( <col>, <list> )` check value in `<list>` (**lst-format** required)
+    * `In( <col>, <list> )` check value in `<list>` (**lst-format** required), `NIN` is its opposite
 3.  Logical Commands:    
     * `NOT( <query> )` inverse the result returned by query inside
     * `AND( <q1> , <q2> , ... )` join all query results and return results presented on all queries
@@ -43,7 +44,7 @@ This is a complete database library made for (Principal of Programming course in
         - Remove all rows in `table` matches in `query`
 
 ## Data Type
-There is 4 dataType implemented in this Database:
+There is 4 DataType implemented in this Database:
 1. `Byte` or`Char` and their arrays `Byte[fixed]`, `Char[fixed]`
 2. `Int` and `Int[fixed]` hold any Integers
 3. `Real` and `Real[fixed]` holds all Double/Float numbers
@@ -57,20 +58,39 @@ You can call `exec` to run requested actions, also you can pass list of `varargs
   * `<typ>` follows like any DataType parameter rules mentioned above.
 
 ## Formats
-1. String Format: `" ... "`, `' ... '`
-2. List Format: `[ ..., ... ]`
-3. Set Format: `[ ..., ... ]`
-4. Function Format: `<func>( ..., ... )`
-4. Parenthesis Format: `( ... )`
-4. VarArgs Format: `${<index>:<typ>}`
+* String Format: `"<text>"`, `'<text>'`, or ``` `<text>` ```
+* List Format: `[ <element1>, <element2>, ... ]`
+* Set Format: `[ <element1>, <element2>, ... ]`
+* Function Format: `<func>( <param1>, <param2>, ... )`
+* Parenthesis Format: `( ... )`
+* VarArgs Format: `${<index>:<typ>}` or `${<typ>}`
+* Column Type Format: `<colName>:<type>`
+* Type Format: `<typ>` or `<typ>[<elementCount>]`
 
 ## Example
+you can see `test-context.cpp`, `test-students.cpp` and `test-bookstore.cpp` to see how to use this library
+also here some command examples:
 ```
 CREATETABLE(students, id:int, name:text, grade:real, year:byte)
+
 InserT(students, {id=1}, {id=2}, {id=3})
+
 uPDATE(students, {id=10}, eq(id, 2))
+
 select(students,[year])
-SELECT(students,eq(year,255)
-Select(students,and( neq(year,94) , neq(id,1374) ))
+
+SELECT(students,eq(year,255))
+
+Select(students,and( nEQ(year,94) , neq(id,1374) ))
 
 ```
+
+## TODOs
+
+- [ ] add `OpenDatabase`,`CloseDatabase`, `DeleteDatabase`, `ClearDatabase` database commands
+- [ ] add `sort` query command
+- [ ] add `like`, `contains`, `exists`, `startsWith`, `endsWith`, 'ignorecase' in string query commands
+- [ ] add `CompactTable` or something similar to compact database (remove additional space between rows)
+- [ ] add `Len(col)`, `Count(<query>)`, `Max(<col>)`, `Min(<col>)`, `Avg(<col>)`, `Round`, `isEmpty(<col>)`
+- [ ] add **Index** meta files, *UniqueIndex*, *PrimaryKeyIndex*
+- [ ] add `Comment` to commands (assembly, c, ... style)
