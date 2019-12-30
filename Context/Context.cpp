@@ -1,9 +1,8 @@
 #include<cstdarg>
 #include<string>
 #include <iostream>
-#include <fstream>
 #include "../utils.h"
-#include "../MetaInfo/DatabaseInfo.h"
+#include "../MetaInfo/MetaInfo.h"
 #include "Context.h"
 #include "Result.h"
 #include "Argument.h"
@@ -16,7 +15,7 @@ namespace db {
 		Context::~Context() {
 			clear();
 
-			// delete tablePos;
+			// delete table;
 			table = nullptr;
 
 			delete database;
@@ -31,8 +30,8 @@ namespace db {
 			result.type = Result::ERR;
 			result.message.clear();
 
-			// delete tablePos;
-			// tablePos = nullptr;
+			// delete table;
+			// table = nullptr;
 
 			return self;
 		}
@@ -53,11 +52,7 @@ namespace db {
 
 			database = new DatabaseInfo(name);
 			try {
-				const std::string path = "./db-" + name + "-inf.dat";
-				std::ifstream is;
-				is.open(path, std::ios::in | std::ios::binary);
-				is >> *database;
-				is.close();
+				database->readInfo();
 			} catch (...) {
 				delete database;
 				database = new DatabaseInfo(name);
@@ -92,11 +87,7 @@ namespace db {
 		}
 
 		void Context::saveDatabaseInfo() const {
-			const std::string path = "./db-" + database->name + "-inf.dat";
-			std::ofstream os;
-			os.open(path, std::ios::out | std::ios::trunc | std::ios::binary);
-			os << *database;
-			os.close();
+			database->writeInfo();
 		}
 
 		Context &Context::exec(const char *cmd, ...) {

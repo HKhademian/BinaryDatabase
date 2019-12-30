@@ -1,7 +1,8 @@
-#include <fstream>
-#include "RowInfo.h"
-#include "DataTypeIO.h"
 #include "../utils.h"
+#include "DataTypeIO.h"
+#include "ColumnInfo.h"
+#include "TableInfo.h"
+#include "RowInfo.h"
 
 namespace db {
 	RowInfo::RowInfo(const TableInfo &table)
@@ -24,28 +25,39 @@ namespace db {
 		return offsetOnDisk;
 	}
 
-	std::istream &RowInfo::readInfo(std::istream &is) {
+	std::istream &RowInfo::seekgEnd(std::istream &stream) {
+		return stream.seekg(offsetOnDisk + sizeof(TypeFlag) + sizeof(TypeSize) + sizeOnDisk, std::istream::beg);
+	}
+
+	std::istream &RowInfo::seekg(std::istream &stream) {
+		return stream.seekg(offsetOnDisk, std::istream::beg);
+	}
+
+	std::ostream &RowInfo::seekp(std::ostream &stream) {
+		return stream.seekp(offsetOnDisk, std::ostream::beg);
+	}
+
+	std::istream &RowInfo::readInfo(std::istream &stream) {
 		if (offsetOnDisk != -1) { // already on disk
-			is.seekg(offsetOnDisk, std::istream::beg);
+			seekg(stream);
 		}
-		offsetOnDisk = is.tellg();
-		flag = readFlag(is);
-		sizeOnDisk = readSize(is);
-		//is.seekg(sizeOnDisk, std::istream::cur);
-		is.seekg(offsetOnDisk + sizeof(TypeFlag) + sizeof(TypeSize) + sizeOnDisk, std::istream::beg);
-		return is;
+		offsetOnDisk = stream.tellg();
+		flag = readFlag(stream);
+		sizeOnDisk = readSize(stream);
+		seekgEnd(stream);
+		return stream;
 	}
 
 	std::ostream &RowInfo::writeInfo(std::ostream &stream) {
 		if (sizeOnDisk == -1) {
 			// return stream; // new row without any data
-			sizeOnDisk = 128; // default row size
+			sizeOnDisk = DEFAULT_ROW_SIZE; // default row size
 		}
 		if (offsetOnDisk == -1) { // new row
 			stream.seekp(0, std::ostream::end);
 			offsetOnDisk = stream.tellp();
 		} else {
-			stream.seekp(offsetOnDisk, std::ostream::beg);
+			seekp(stream);
 		}
 		writeFlag(stream, flag);
 		writeSize(stream, sizeOnDisk);
@@ -53,18 +65,16 @@ namespace db {
 	}
 
 	RowInfo &RowInfo::readInfo() {
-		std::ifstream is;
-		table.openDataInputStream(is);
-		readInfo(is);
-		is.close();
+		auto stream = table.openDataInputStream();
+		readInfo(stream);
+		stream.close();
 		return self;
 	}
 
 	RowInfo &RowInfo::writeInfo() {
-		std::ofstream os;
-		table.openDataOutputStream(os);
-		writeInfo(os);
-		os.close();
+		std::ofstream stream = table.openDataOutputStream();
+		writeInfo(stream);
+		stream.close();
 		return self;
 	}
 

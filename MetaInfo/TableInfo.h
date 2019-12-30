@@ -3,25 +3,28 @@
 
 #include <vector>
 #include <fstream>
-#include "ColumnInfo.h"
 #include "../utils.h"
 
 namespace db {
+	struct DatabaseInfo;
+	struct ColumnInfo;
+
 	struct TableInfo {
+		const DatabaseInfo &database;
 		std::string name = "";
 		std::vector<ColumnInfo> columns;
 
-		TableInfo() = default;
-
-		explicit TableInfo(std::string nam) :
-			name(std::move(nam)) {}
+		explicit TableInfo(const DatabaseInfo &database, std::string nam = "") :
+			database(database), name(std::move(nam)) {}
 
 		bool operator==(const TableInfo &rhs) const;
+
 		bool operator<(const TableInfo &rhs) const;
 
-		friend std::ostream &operator<<(std::ostream &os, const TableInfo &data);
+		std::ostream &writeInfo(std::ostream &stream) const;
 
-		friend std::istream &operator>>(std::istream &is, TableInfo &data);
+		std::istream &readInfo(std::istream &stream);
+
 
 		size_t getRowSize() const;
 

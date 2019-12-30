@@ -25,7 +25,7 @@ namespace db {
 				throw std::invalid_argument("table already exists");
 			}
 
-			TableInfo tableInfo(tableName);
+			TableInfo tableInfo(db, tableName);
 			loopIn(i, 1, vparams.size()) {
 				auto range = vparams[i];
 				const ColumnInfo columnInfo = createCol(cmd, range);

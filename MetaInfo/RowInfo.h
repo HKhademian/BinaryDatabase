@@ -2,9 +2,13 @@
 #define DATABASE_ROW_INFO_H
 
 #include <cstdlib>
-#include "TableInfo.h"
+#include "DataType.h"
 
 namespace db {
+	const TypeSize DEFAULT_ROW_SIZE = 128 - sizeof(TypeFlag) - sizeof(TypeSize);
+
+	struct TableInfo;
+
 	struct RowInfo {
 		const TableInfo &table;
 
@@ -18,14 +22,22 @@ namespace db {
 		TypeFlag flag = 0;
 
 	public:
-		bool operator==(const RowInfo& rhs) const;
-		bool operator<(const RowInfo& rhs) const;
+		bool operator==(const RowInfo &rhs) const;
+
+		bool operator<(const RowInfo &rhs) const;
 
 		bool isFree() const;
 
 		void setFree(bool isFree);
 
 		size_t unique() const;
+
+
+		std::istream &seekgEnd(std::istream &is);
+
+		std::istream &seekg(std::istream &is);
+
+		std::ostream &seekp(std::ostream &is);
 
 		std::istream &readInfo(std::istream &is);
 

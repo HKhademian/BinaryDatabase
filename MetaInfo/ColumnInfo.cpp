@@ -1,19 +1,20 @@
 #include <iostream>
+#include "../utils.h"
 #include "DataType.h"
 #include "DataTypeIO.h"
 #include "ColumnInfo.h"
 
 namespace db {
-	std::ostream &operator<<(std::ostream &os, const ColumnInfo &column) {
-		writeType(os, column.type);
-		writeText(os, column.name);
-		return os;
+	std::ostream &ColumnInfo::writeInfo(std::ostream &stream) const {
+		writeType(stream, self.type);
+		writeText(stream, self.name);
+		return stream;
 	}
 
-	std::istream &operator>>(std::istream &is, ColumnInfo &column) {
-		readType(is, column.type);
-		readText(is, column.name);
-		return is;
+	std::istream &ColumnInfo::readInfo(std::istream &stream) {
+		readType(stream, self.type);
+		readText(stream, self.name);
+		return stream;
 	}
 
 	TypeSize ColumnInfo::getRowSize() const {

@@ -1,6 +1,8 @@
 #ifndef DATABASE_DATABASE_INFO_H
 #define DATABASE_DATABASE_INFO_H
 
+#include <vector>
+#include <fstream>
 #include "TableInfo.h"
 
 namespace db {
@@ -14,13 +16,34 @@ namespace db {
 		explicit DatabaseInfo(std::string nam) :
 			name(std::move(nam)) {}
 
-		friend std::ostream &operator<<(std::ostream &os, const DatabaseInfo &data);
+		std::ostream &writeInfo(std::ostream &stream) const;
 
-		friend std::istream &operator>>(std::istream &is, DatabaseInfo &data);
+		const DatabaseInfo &writeInfo() const;
+
+		std::istream &readInfo(std::istream &stream);
+
+		DatabaseInfo &readInfo();
+
 
 		int tablePos(const std::string &tableName) const;
 
 		const TableInfo *table(const std::string &tableName) const;
+
+
+		std::string getInfoPath() const;
+
+		std::fstream &openInfoStream(std::fstream &stream) const;
+
+		std::fstream openInfoStream() const;
+
+		std::ifstream &openInfoInputStream(std::ifstream &stream) const;
+
+		std::ifstream openInfoInputStream() const;
+
+		std::ofstream &openInfoOutputStream(std::ofstream &stream) const;
+
+		std::ofstream openInfoOutputStream() const;
+
 	};
 
 }

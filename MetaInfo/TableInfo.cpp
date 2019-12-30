@@ -1,41 +1,35 @@
 #include <iostream>
+#include "../utils.h"
 #include "DataTypeIO.h"
 #include "ColumnInfo.h"
+#include "DatabaseInfo.h"
 #include "TableInfo.h"
-#include "../utils.h"
 
 namespace db {
 	std::string TableInfo::getDataPath() const {
-		return "./tbl-" + name + ".dat";
+		return "./tbl-" + self.database.name + "-" + self.name + ".dat";
 	}
 
-
-	std::ostream &operator<<(std::ostream &os, const TableInfo &data) {
-		writeText(os, data.name);
-
-		const auto count = data.columns.size();
-		writeSize(os, count);
-
+	std::ostream &TableInfo::writeInfo(std::ostream &stream) const {
+		writeText(stream, self.name);
+		const auto count = self.columns.size();
+		writeSize(stream, count);
 		loop (i, count) {
-			os << data.columns[i];
+			self.columns[i].writeInfo(stream);
 		}
-
-		return os;
+		return stream;
 	}
 
-	std::istream &operator>>(std::istream &is, TableInfo &data) {
-		data.columns.clear();
-
-		readText(is, data.name);
-
-		const size_t count = readSize(is);
+	std::istream &TableInfo::readInfo(std::istream &stream) {
+		self.columns.clear();
+		readText(stream, self.name);
+		const size_t count = readSize(stream);
 		loop (i, count) {
-			auto el = new ColumnInfo();
-			is >> *el;
-			data.columns.push_back(*el);
+			auto col = ColumnInfo(); // auto el = new ColumnInfo();
+			col.readInfo(stream);
+			self.columns.push_back(col);
 		}
-
-		return is;
+		return stream;
 	}
 
 	size_t TableInfo::getRowSize() const {
@@ -75,9 +69,10 @@ namespace db {
 	}
 
 	std::fstream &TableInfo::openDataStream(std::fstream &stream) const {
-		stream.open(getDataPath(), std::ios::out | std::ios::binary); // create if not exists
+		const auto &path = getDataPath();
+		stream.open(path, std::ios::out | std::ios::binary); // create if not exists
 		stream.close();
-		stream.open(getDataPath(), std::ios::in | std::ios::out | std::ios::binary); // open for rw
+		stream.open(path, std::ios::in | std::ios::out | std::ios::binary); // open for rw
 		stream.seekg(0, std::ifstream::beg);
 		stream.seekp(0, std::ifstream::beg);
 		return stream;
@@ -90,11 +85,12 @@ namespace db {
 	}
 
 	std::ifstream &TableInfo::openDataInputStream(std::ifstream &stream) const {
-		stream.open(getDataPath(), std::ios::in | std::ios::binary); // open if exists
+		const auto &path = getDataPath();
+		stream.open(path, std::ios::in | std::ios::binary); // open if exists
 		if (!stream) {
-			stream.open(getDataPath(), std::ios::out | std::ios::binary); // create if not
+			stream.open(path, std::ios::out | std::ios::binary); // create if not
 			stream.close();
-			stream.open(getDataPath(), std::ios::in | std::ios::binary);
+			stream.open(path, std::ios::in | std::ios::binary);
 		}
 		stream.seekg(0, std::ifstream::beg);
 		return stream;
@@ -107,9 +103,10 @@ namespace db {
 	}
 
 	std::ofstream &TableInfo::openDataOutputStream(std::ofstream &stream) const {
-		stream.open(getDataPath(), std::ios::in | std::ios::out | std::ios::binary); // open if exists
+		const auto &path = getDataPath();
+		stream.open(path, std::ios::in | std::ios::out | std::ios::binary); // open if exists
 		if (!stream) {
-			stream.open(getDataPath(), std::ios::out | std::ios::binary); // create if not
+			stream.open(path, std::ios::out | std::ios::binary); // create if not
 		}
 		stream.seekp(0, std::ifstream::beg);
 		return stream;
