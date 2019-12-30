@@ -68,7 +68,7 @@ You can call `exec` to run requested actions, also you can pass list of `varargs
 * Type Format: `<typ>` or `<typ>[<elementCount>]`
 
 ## Example
-you can see `test-context.cpp`, `test-students.cpp` and `test-bookstore.cpp` to see how to use this library
+you can see [test-context.cpp](./blob/master/test/test-context.cpp), [test-students.cpp](./blob/master/test/test-students.cpp) and [test-bookstore.cpp](./blob/master/test/test-bookstore.cpp) in [tests](./blob/master/test/) to see how to use this library
 also here some command examples:
 ```
 CREATETABLE(students, id:int, name:text, grade:real, year:byte)
