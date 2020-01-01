@@ -20,6 +20,7 @@ namespace db {
 	void updateDataRows(const std::vector<ColumnInfo> &columns, std::vector<DataRow> &rows);
 
 	void removeDataRows(std::vector<RowInfo> &rows);
+	void removeDataRows(std::vector<DataRow> &rows);
 }
 
 #endif

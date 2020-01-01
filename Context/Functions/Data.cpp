@@ -89,13 +89,17 @@ namespace db {
 				throw std::invalid_argument("illegal param count (exactly 2)");
 			}
 			const auto &table = getTable(context, cmd, vparams[0]);
+			context.setTable(&table);
+			context.setRows(loadRows(table)); // TODO: check previous rows
 
 			auto &query = eval(context, cmd, vparams[1]);
 			if (query.hasError()) {
 				return context.err("error in query");
 			}
 
-			removeDataRows((std::vector<RowInfo> &) query.getRows());
+			auto &rows = query.getRows(false);
+			context.setRows(rows);
+			removeDataRows(rows);
 
 			return context.done();
 		}

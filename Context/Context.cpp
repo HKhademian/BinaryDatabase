@@ -83,7 +83,7 @@ namespace db {
 				return self;
 			}
 
-			throw std::logic_error("no database is open in current context");
+			// throw std::logic_error("no database is open in current context");
 		}
 
 		void Context::saveDatabaseInfo() const {

@@ -3,9 +3,21 @@
 
 namespace db {
 	std::ostream &writeBin(std::ostream &os, const void *data, const size_t &size) {
-		static const char zeros[100]{0};
-		if (os.write(data == nullptr ? zeros : (char *) data, size)) {
-			return os;
+		if (data != nullptr) {
+			if (os.write((char *) data, size)) {
+				return os;
+			}
+		} else {
+			static const char zeros[100]{0};
+			size_t ss = size;
+			while (ss > 100) {
+				os.write(zeros, 100);
+				ss -= 100;
+			}
+			os.write(zeros, ss);
+			if (os) {
+				return os;
+			}
 		}
 		throw std::out_of_range("stream is ended.");
 	}

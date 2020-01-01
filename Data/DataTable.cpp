@@ -52,6 +52,17 @@ namespace db {
 		stream.close();
 	}
 
+	void removeDataRows(std::vector<DataRow> &rows) {
+		if (rows.empty()) return;
+		const auto &table = rows[0].table;
+		auto stream = table.openDataOutputStream();
+		for (auto &row:rows) {
+			row.setFree(true);
+			row.writeInfo(stream);
+		}
+		stream.close();
+	}
+
 
 	std::vector<DataRow> loadRows(const TableInfo &table) {
 		return loadRows(table, std::vector<ColumnInfo>());
