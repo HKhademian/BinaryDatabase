@@ -108,10 +108,11 @@ void onDatabaseMigrate(Context &context, int version, int oldVersion) {
 	cout << "onDatabaseMigrate(version:" << version << ")" << endl;
 }
 
-void mainContext() {
+int main() {
 	Context context;
 	context.open("myTestDatabase", 1, &onDatabaseOpen, &onDatabaseCreate, &onDatabaseMigrate);
 	context.close();
+	return 0;
 }
 
 
