@@ -1,3 +1,4 @@
+#include <cstring> // memcpy
 #include "DataValue.h"
 #include "../MetaInfo/DataType.h"
 #include "../utils.h"
