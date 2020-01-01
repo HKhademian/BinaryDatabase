@@ -21,7 +21,7 @@ namespace db {
 		bool operator==(const ColumnInfo &rhs) const;
 		bool operator <(const ColumnInfo& rhs) const;
 
-		size_t getRowSize() const;
+		TypeSize getRowSize() const;
 	};
 }
 
